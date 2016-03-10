@@ -156,7 +156,6 @@ int VersaLase::Initialize()
 	command << "?gui1"; //?GUI1=1*1*1*1*FV*PV => 7 tokens
 	ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
 	if (ret != DEVICE_OK) return ret;
-	CDeviceUtils::SleepMs(50);
 	ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
 	ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
 	PurgeComPort(port_.c_str());
@@ -553,7 +552,6 @@ int VersaLase::GetOpen(bool& open)
 
 	 ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
 	 if (ret != DEVICE_OK) return ret;
-	 CDeviceUtils::SleepMs(50);
 	 ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
 	 ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
 	 PurgeComPort(port_.c_str());
@@ -597,7 +595,6 @@ int VersaLase::epcOnOffA(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -623,7 +620,6 @@ int VersaLase::epcOnOffB(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -649,7 +645,6 @@ int VersaLase::epcOnOffC(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -675,7 +670,6 @@ int VersaLase::epcOnOffD(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -701,7 +695,6 @@ int VersaLase::digModOnOffA(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -727,7 +720,6 @@ int VersaLase::digModOnOffB(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -753,7 +745,6 @@ int VersaLase::digModOnOffC(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -779,7 +770,6 @@ int VersaLase::digModOnOffD(int onoff)
 
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -804,7 +794,6 @@ int VersaLase::LaserOnOffA(int onoff)
      }
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -830,7 +819,6 @@ int VersaLase::LaserOnOffB(int onoff)
      }
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -856,7 +844,6 @@ int VersaLase::LaserOnOffC(int onoff)
      }
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -882,7 +869,6 @@ int VersaLase::LaserOnOffD(int onoff)
      }
      int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
      if (ret != DEVICE_OK) return ret;
-     CDeviceUtils::SleepMs(100);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
      PurgeComPort(port_.c_str());
@@ -905,7 +891,6 @@ int VersaLase::OnBaseT(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "?bpt";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", baseT_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", baseT_);
         PurgeComPort(port_.c_str());
@@ -1081,7 +1066,6 @@ int VersaLase::OnDigModA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.?pul";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1135,7 +1119,6 @@ int VersaLase::OnDigModB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.?pul";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1189,7 +1172,6 @@ int VersaLase::OnDigModC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.?pul";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1243,7 +1225,6 @@ int VersaLase::OnDigModD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.?pul";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1296,7 +1277,6 @@ int VersaLase::OnEPCA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.?epc";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1351,7 +1331,6 @@ int VersaLase::OnEPCB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.?epc";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1406,7 +1385,6 @@ int VersaLase::OnEPCC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.?epc";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1461,7 +1439,6 @@ int VersaLase::OnEPCD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.?epc";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1518,7 +1495,6 @@ int VersaLase::OnPulPwrStatusA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?pp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -1556,7 +1532,6 @@ int VersaLase::OnPulPwrStatusB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?pp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -1594,7 +1569,6 @@ int VersaLase::OnPulPwrStatusC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?pp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -1632,7 +1606,6 @@ int VersaLase::OnPulPwrStatusD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?pp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -1667,7 +1640,6 @@ int VersaLase::OnPulPwrA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.?pp";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1691,7 +1663,6 @@ int VersaLase::OnPulPwrA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.pp=" << pulPwrA_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(1000);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1712,7 +1683,6 @@ int VersaLase::OnPulPwrB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.?pp";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1736,7 +1706,6 @@ int VersaLase::OnPulPwrB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.pp=" << pulPwrB_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(1000);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1757,7 +1726,6 @@ int VersaLase::OnPulPwrC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.?pp";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1781,7 +1749,6 @@ int VersaLase::OnPulPwrC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.pp=" << pulPwrC_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(1000);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1802,7 +1769,6 @@ int VersaLase::OnPulPwrD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.?pp";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1826,7 +1792,6 @@ int VersaLase::OnPulPwrD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.pp=" << pulPwrD_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(1000);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1847,7 +1812,6 @@ int VersaLase::OnPowerA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.?lps";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1871,7 +1835,6 @@ int VersaLase::OnPowerA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.lp=" << powerA_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(500);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1892,7 +1855,6 @@ int VersaLase::OnPowerB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.?lps";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1916,7 +1878,6 @@ int VersaLase::OnPowerB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.lp=" << powerB_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(500);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1937,7 +1898,6 @@ int VersaLase::OnPowerC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.?lps";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1961,7 +1921,6 @@ int VersaLase::OnPowerC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.lp=" << powerC_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(500);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -1982,7 +1941,6 @@ int VersaLase::OnPowerD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.?lps";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -2006,7 +1964,6 @@ int VersaLase::OnPowerD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.lp=" << powerD_;
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(500);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -2029,7 +1986,6 @@ int VersaLase::OnPowerStatusA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?lp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2063,7 +2019,6 @@ int VersaLase::OnPowerStatusB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?lp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2098,7 +2053,6 @@ int VersaLase::OnPowerStatusC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?lp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2133,7 +2087,6 @@ int VersaLase::OnPowerStatusD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?lp";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2168,7 +2121,6 @@ int VersaLase::OnHoursA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?lh";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursA_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursA_);
         PurgeComPort(port_.c_str());
@@ -2203,7 +2155,6 @@ int VersaLase::OnHoursB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?lh";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursB_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursB_);
         PurgeComPort(port_.c_str());
@@ -2238,7 +2189,6 @@ int VersaLase::OnHoursC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?lh";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursC_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursC_);
         PurgeComPort(port_.c_str());
@@ -2273,7 +2223,6 @@ int VersaLase::OnHoursD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?lh";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursD_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", hoursD_);
         PurgeComPort(port_.c_str());
@@ -2306,7 +2255,6 @@ int VersaLase::OnFaultCodeA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?fc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeA_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeA_);
         PurgeComPort(port_.c_str());
@@ -2342,7 +2290,6 @@ int VersaLase::OnFaultCodeB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?fc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeB_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeB_);
         PurgeComPort(port_.c_str());
@@ -2378,7 +2325,6 @@ int VersaLase::OnFaultCodeC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?fc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeC_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeC_);
         PurgeComPort(port_.c_str());
@@ -2414,7 +2360,6 @@ int VersaLase::OnFaultCodeD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?fc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeD_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", faultCodeD_);
         PurgeComPort(port_.c_str());
@@ -2450,7 +2395,6 @@ int VersaLase::OnSerialNumberA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?li";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberA_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberA_);
         PurgeComPort(port_.c_str());
@@ -2485,7 +2429,6 @@ int VersaLase::OnSerialNumberB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?li";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberB_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberB_);
         PurgeComPort(port_.c_str());
@@ -2520,7 +2463,6 @@ int VersaLase::OnSerialNumberC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?li";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberC_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberC_);
         PurgeComPort(port_.c_str());
@@ -2555,7 +2497,6 @@ int VersaLase::OnSerialNumberD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?li";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberD_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", serialNumberD_);
         PurgeComPort(port_.c_str());
@@ -2589,7 +2530,6 @@ int VersaLase::OnVersion(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "?sfv";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", version_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", version_);
         PurgeComPort(port_.c_str());
@@ -2624,7 +2564,6 @@ int VersaLase::OnCurrentA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?lc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentA_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentA_);
         PurgeComPort(port_.c_str());
@@ -2660,7 +2599,6 @@ int VersaLase::OnCurrentB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?lc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentB_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentB_);
         PurgeComPort(port_.c_str());
@@ -2696,7 +2634,6 @@ int VersaLase::OnCurrentC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?lc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentC_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentC_);
         PurgeComPort(port_.c_str());
@@ -2732,7 +2669,6 @@ int VersaLase::OnCurrentD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?lc";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentD_);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", currentD_);
         PurgeComPort(port_.c_str());
@@ -2769,7 +2705,6 @@ int VersaLase::OnInterlock(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "?il";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(100);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2810,7 +2745,6 @@ int VersaLase::OnFaultA(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "a.?fd";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2846,7 +2780,6 @@ int VersaLase::OnFaultB(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "b.?fd";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2882,7 +2815,6 @@ int VersaLase::OnFaultC(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "c.?fd";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2918,7 +2850,6 @@ int VersaLase::OnFaultD(MM::PropertyBase* pProp, MM::ActionType eAct)
         command << "d.?fd";
         int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
         if (ret != DEVICE_OK) return ret;
-        CDeviceUtils::SleepMs(50);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
         PurgeComPort(port_.c_str());
@@ -2955,7 +2886,6 @@ int VersaLase::OnLaserOnOffA(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "a.?le";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -3008,7 +2938,6 @@ int VersaLase::OnLaserOnOffB(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "b.?le";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -3061,7 +2990,6 @@ int VersaLase::OnLaserOnOffC(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "c.?le";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
@@ -3114,7 +3042,6 @@ int VersaLase::OnLaserOnOffD(MM::PropertyBase* pProp, MM::ActionType eAct)
           command << "d.?le";
           int ret = SendSerialCommand(port_.c_str(), command.str().c_str(), "\r");
           if (ret != DEVICE_OK) return ret;
-          CDeviceUtils::SleepMs(50);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           ret = GetSerialAnswer(port_.c_str(), "\r\n", answer);
           PurgeComPort(port_.c_str());
