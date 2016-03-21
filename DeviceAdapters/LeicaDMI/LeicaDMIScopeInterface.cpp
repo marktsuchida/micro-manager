@@ -1987,6 +1987,7 @@ int LeicaScopeInterface::GetTransmittedLightShutterPosition(MM::Device & /*devic
  */
 int LeicaScopeInterface::SetAFCMode(MM::Device &device, MM::Core &core, bool on)
 {
+   scopeModel_->afc_.SetBusy(true);
    std::stringstream os;
    os << g_AFC << "020" << " " << (on ? "1" : "0");
 	int ret = core.SetSerialCommand(&device, port_.c_str(), os.str().c_str(), "\r");
@@ -2000,6 +2001,7 @@ int LeicaScopeInterface::SetAFCMode(MM::Device &device, MM::Core &core, bool on)
  */
 int LeicaScopeInterface::SetAFCOffset(MM::Device &device, MM::Core &core, double offset)
 {
+   scopeModel_->afc_.SetBusy(true);
    std::stringstream os;
    os << g_AFC << "024" << " " << offset;
 	int ret = core.SetSerialCommand(&device, port_.c_str(), os.str().c_str(), "\r");
@@ -2013,6 +2015,7 @@ int LeicaScopeInterface::SetAFCOffset(MM::Device &device, MM::Core &core, double
  */
 int LeicaScopeInterface::SetAFCDichroicMirrorPosition(MM::Device &device, MM::Core &core, int position)
 {
+   scopeModel_->afc_.SetBusy(true);
    std::stringstream os;
    os << g_AFC << "031" << " " << position;
 	int ret = core.SetSerialCommand(&device, port_.c_str(), os.str().c_str(), "\r");
