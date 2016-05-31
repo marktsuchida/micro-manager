@@ -308,21 +308,54 @@ int LeicaMagChangerModel::SetMagnification(int pos, double mag)
  * Leica AFC (Hardware autofocus)
  */
 LeicaAFCModel::LeicaAFCModel() :
-   offset_(0.0)
+   mode_(false),
+   offsetSetPoint_(0.0),
+   measuredOffset_(-1.0),
+   offsetDiff_(-1.0),
+   topLEDColor_(0),
+   bottomLEDColor_(0)
 {
 }
 
-int LeicaAFCModel::GetOffset(double& offset)
+int LeicaAFCModel::GetOffsetSetPoint(double& offset)
 {
    MMThreadGuard guard(mutex_);
-   offset = offset_;
+   offset = offsetSetPoint_;
    return DEVICE_OK;
 }
 
-int LeicaAFCModel::SetOffset(double offset)
+int LeicaAFCModel::SetOffsetSetPoint(double offset)
 {
    MMThreadGuard guard(mutex_);
-   offset_ = offset;
+   offsetSetPoint_ = offset;
+   return DEVICE_OK;
+}
+
+int LeicaAFCModel::GetMeasuredOffset(double& offset)
+{
+   MMThreadGuard guard(mutex_);
+   offset = measuredOffset_;
+   return DEVICE_OK;
+}
+
+int LeicaAFCModel::SetMeasuredOffset(double offset)
+{
+   MMThreadGuard guard(mutex_);
+   measuredOffset_ = offset;
+   return DEVICE_OK;
+}
+
+int LeicaAFCModel::GetOffsetDifference(double& diff)
+{
+   MMThreadGuard guard(mutex_);
+   diff = offsetDiff_;
+   return DEVICE_OK;
+}
+
+int LeicaAFCModel::SetOffsetDifference(double diff)
+{
+   MMThreadGuard guard(mutex_);
+   offsetDiff_ = diff;
    return DEVICE_OK;
 }
 

@@ -453,7 +453,7 @@ int LeicaScopeInterface::Initialize(MM::Device& device, MM::Core& core)
 
    // Start event reporting for AFC
    if (scopeModel_->IsDeviceAvailable(g_AFC)) {
-      command << g_AFC << "003 1 0 0 1 1 0 1 0 0";
+      command << g_AFC << "003 1 1 0 1 1 1 1 0 0";
       ret = GetAnswer(device, core, command.str().c_str(), answer);
       if (ret != DEVICE_OK)
          return ret;
@@ -598,6 +598,18 @@ int LeicaScopeInterface::Initialize(MM::Device& device, MM::Core& core)
       command.str("");
 
       command << g_AFC << "023";
+      ret = core.SetSerialCommand(&device, port_.c_str(), command.str().c_str(), "\r");
+      if (ret != DEVICE_OK)
+         return ret;
+      command.str("");
+
+      command << g_AFC << "025";
+      ret = core.SetSerialCommand(&device, port_.c_str(), command.str().c_str(), "\r");
+      if (ret != DEVICE_OK)
+         return ret;
+      command.str("");
+
+      command << g_AFC << "030";
       ret = core.SetSerialCommand(&device, port_.c_str(), command.str().c_str(), "\r");
       if (ret != DEVICE_OK)
          return ret;
@@ -2025,22 +2037,6 @@ int LeicaScopeInterface::SetAFCDichroicMirrorPosition(MM::Device &device, MM::Co
 }
 
 /*
-int LeicaScopeInterface::IsContinuousAutoFocusLocked(MM::Device &device, MM::Core &core, bool & locked)
-{
-   double offset;
-   int ret = GetContinuousAutoFocusOffset(device, core, offset);
-    
-   if(ret != DEVICE_OK)
-		return ret;	
-
-   locked = (offset >= 0.0);
-
-	return DEVICE_OK;
-   
-}
-*/
-
-/*
  * Thread that continuously monitors messages from the Leica scope and inserts them into a model of the microscope
  */
 LeicaMonitoringThread::LeicaMonitoringThread(MM::Device& device, MM::Core& core, std::string port, LeicaDMIModel* scopeModel) :
@@ -2699,8 +2695,21 @@ int LeicaMonitoringThread::svc()
                      {
                         double offset;
                         os >> offset;
-                        scopeModel_->afc_.SetOffset(offset);
-                        scopeModel_->afc_.SetBusy(false);
+                        scopeModel_->afc_.SetMeasuredOffset(offset);
+                        break;
+                     }
+                     case (25) : // Offset setpoint
+                     {
+                        double offset;
+                        os >> offset;
+                        scopeModel_->afc_.SetOffsetSetPoint(offset);
+                        break;
+                     }
+                     case (30) : // Offset difference
+                     {
+                        double diff;
+                        os >> diff;
+                        scopeModel_->afc_.SetOffsetDifference(diff);
                         break;
                      }
                      case (32) : // AFC dichroic mirror position

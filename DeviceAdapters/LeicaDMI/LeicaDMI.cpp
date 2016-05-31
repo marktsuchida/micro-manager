@@ -2992,6 +2992,16 @@ int AFC::Initialize()
    if (ret != DEVICE_OK)
       return ret;
 
+   pAct = new CPropertyAction(this, &AFC::OnMeasuredOffset);
+   ret = CreateProperty("MeasuredOffset", "-1", MM::Float, true, pAct);
+   if (ret != DEVICE_OK)
+      return ret;
+
+   pAct = new CPropertyAction(this, &AFC::OnOffsetDifference);
+   ret = CreateProperty("OffsetDifference", "-1", MM::Float, true, pAct);
+   if (ret != DEVICE_OK)
+      return ret;
+
    initialized_ = true;
    return 0;
 }
@@ -3064,7 +3074,7 @@ int AFC::IncrementalFocus() {
 }
 
 int AFC::GetOffset(double &offset) {
-   return g_ScopeModel.afc_.GetOffset(offset);
+   return g_ScopeModel.afc_.GetOffsetSetPoint(offset);
 }
 
 int AFC::SetOffset(double offset) {
@@ -3125,6 +3135,32 @@ int AFC::OnOffset(MM::PropertyBase* pProp, MM::ActionType eAct)
       return SetOffset(offset);
    }
 
+   return DEVICE_OK;
+}
+
+int AFC::OnMeasuredOffset(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      double offset;
+      int ret = g_ScopeModel.afc_.GetMeasuredOffset(offset);
+      if (ret != DEVICE_OK)
+         return ret;
+      pProp->Set(offset);
+   }
+   return DEVICE_OK;
+}
+
+int AFC::OnOffsetDifference(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      double diff;
+      int ret = g_ScopeModel.afc_.GetMeasuredOffset(diff);
+      if (ret != DEVICE_OK)
+         return ret;
+      pProp->Set(diff);
+   }
    return DEVICE_OK;
 }
 
@@ -3189,7 +3225,7 @@ bool AFCOffset::Busy()
 
 int AFCOffset::GetPositionUm(double& offset)
 {
-   return g_ScopeModel.afc_.GetOffset(offset);
+   return g_ScopeModel.afc_.GetOffsetSetPoint(offset);
 }
 
 int AFCOffset::SetPositionUm(double offset)
@@ -3201,7 +3237,7 @@ int AFCOffset::GetPositionSteps(long& steps)
 {
    // Arbitrarily define 1 step = 1 nm
    double offset = 0.0;
-   int ret = g_ScopeModel.afc_.GetOffset(offset);
+   int ret = g_ScopeModel.afc_.GetOffsetSetPoint(offset);
    if (ret == DEVICE_OK)
       steps = static_cast<long>(1000.0 * offset);
    return ret;

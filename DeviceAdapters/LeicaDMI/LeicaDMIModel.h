@@ -259,15 +259,22 @@ class LeicaAFCModel : public LeicaDeviceModel
 public:
    LeicaAFCModel();
 
-   int GetOffset(double& mag); // Set point
-   int SetOffset(double mag);  // Measured value
    int GetMode(bool& mode);
    int SetMode(bool mode);
+   int GetOffsetSetPoint(double& offset);
+   int SetOffsetSetPoint(double offset);
+   int GetMeasuredOffset(double& offset);
+   int SetMeasuredOffset(double offset);
+   int GetOffsetDifference(double& diff);
+   int SetOffsetDifference(double diff);
    int GetLEDColors(int& topColor, int& bottomColor);
    int SetLEDColors(int topColor, int bottomColor);
+
 private:
-   double offset_;
    bool mode_;
+   double offsetSetPoint_;
+   double measuredOffset_;
+   double offsetDiff_;
    int topLEDColor_;
    int bottomLEDColor_;
 };
