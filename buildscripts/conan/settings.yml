@@ -1,0 +1,42 @@
+# We use values for os that differ from the conan default; this is done in part
+# to fail early if the default settings.yml is used by accident.
+# 'linux' may be added in the future but we don't yet use conan on Linux.
+os: [windows, macosx]
+
+# x86_universal is for macosx binaries with universal x86 + x86_64.
+arch: [x86, x86_64, x86_universal]
+
+build_type: [None, Debug, Release]
+
+# Compilers that we have not so far used (e.g. gcc for linux) have been
+# intentionally removed, since we need to thoroughly study the required
+# settings.
+compiler:
+    Visual Studio:
+        # The toolset value determines the compiler version. Proprietary
+        # (binary-only), pure-C libraries should be toolset-agnostic if they
+        # are restricted to runtime = MD and/or MT, at least in most cases.
+        # Note:
+        # Visual Studio 2008:  v90
+        # Visual Studio 2010: v100, Windows7.1SDK
+        # Visual Studio 2012: v110
+        # Visual Studio 2013: v120, v120_xp
+        # Visual Studio 2015: v140, v140_xp
+        # For third-party DLLs, we typically use v90, v100, v120, etc.
+        toolset: ["v90", "v100", "Windows7.1SDK", "v110", "v120", "v120_xp", "v140", "v140_xp"]
+        runtime: [MD, MT, MTd, MDd]
+
+    apple-clang:
+        # The version is actually the LLVM version.
+        # See: clang --version
+        version: ["5.0", "5.1", "6.0", "6.1", "7.0", "7.3"]
+        # The MACOSX_DEPLOYMENT_TARGET of a binary is important when trying to
+        # build an application that supports back to a certain Mac OS X
+        # version.
+        # Rather than distinguishing libstdc++ and libc++, we assume that all
+        # packages >= 10.9 link to libc++; all < 10.9 link to libstdc++.
+        macosx_deployment_target: ["10.5", "10.6", "10.7", "10.8", "10.9", "10.10"]
+
+# Since we occasionally use conan for Java artifacts, we need to be able to
+# specify the binary compatibility
+java_target: ["1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8"]
