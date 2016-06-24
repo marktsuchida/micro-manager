@@ -1016,6 +1016,230 @@ std::string MT20hub::SetFilterwheelPosition(long pos)
 	return std::string(ret_msg);
 }
 
+std::string MT20hub::SetCANFwTurretPosition(long pos)
+{
+	log(std::string("Entering MT20hub::SetCANFwTurretPosition().\n"));
+	char ret_msg [4096];
+	push_msg(EXPERIMENT);
+	++msgs_to_recv_;
+	std::string recv_ret;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwTurretPosition() after EXPERIMENT\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	switch(pos)
+	{
+		case 0:
+			push_msg(SET_CANFWTURRET_0);
+			break;
+		case 1:
+			push_msg(SET_CANFWTURRET_1);
+			break;
+		case 2:
+			push_msg(SET_CANFWTURRET_2);
+			break;
+		case 3:
+			push_msg(SET_CANFWTURRET_3);
+			break;
+		case 4:
+			push_msg(SET_CANFWTURRET_4);
+			break;
+		case 5:
+			push_msg(SET_CANFWTURRET_5);
+			break;
+		case 6:
+			push_msg(SET_CANFWTURRET_6);
+			break;
+		case 7:
+			push_msg(SET_CANFWTURRET_7);
+			break;
+		
+		default:
+			snprintf(ret_msg, 4095, "Error: invalid filterwheel position %l requested in MT20hub::SetCANFwTurretPosition()\n", pos);
+			log(std::string(ret_msg));
+			return std::string(ret_msg);
+	}
+	++msgs_to_recv_;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwTurretPosition() after SET_CANFWTURRET_%l\n", pos);
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	push_msg(GO_EXP);
+	msgs_to_recv_ += 2;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwTurretPosition() after GO_EXP\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+
+	// Find message containing ExperimentReport
+	// Check that it is RepNum 601 (Experiment executed); otherwise, there was an error
+	recvd_msg_iter_ = recvd_msg_buf_.begin();
+	char repnum[] = "601";
+	char experr[] = "0";
+
+	while(recvd_msg_iter_ != recvd_msg_buf_.end())
+	{
+		TiXmlHandle handle(&(*recvd_msg_iter_));
+		TiXmlElement* element;
+
+		if((element = handle.FirstChildElement().FirstChildElement("ExperimentReport").FirstChildElement("RepNum").Element()) != NULL)
+		{
+			// Found appropriate message
+			// Check there were no errors
+			if(strcmp(element->GetText(), repnum) != 0)
+			{
+				snprintf(ret_msg, 4095, "Error: failed to receive expected response (MsgNum 601: Experiment executed) from device in MT20hub::SetCANFwTurretPosition()\nmessage received:\n");
+				std::ostringstream oss;
+				oss << "Received messages:" << std::endl;
+				dump_to_stdout(&(*recvd_msg_iter_), &oss);
+				log(std::string(ret_msg).append(oss.str()));
+				return std::string(ret_msg).append(oss.str());
+			}
+			element = handle.FirstChildElement().FirstChildElement("ExperimentReport").FirstChildElement("ExpErrors").Element();
+			if(strcmp(element->GetText(), experr) != 0)
+			{
+				snprintf(ret_msg, 4095, "Error: detected device error in MT20hub::SetCANFwTurretPosition()\nmessage received:\n");
+				std::ostringstream oss;
+				oss << "Received messages:" << std::endl;
+				dump_to_stdout(&(*recvd_msg_iter_), &oss);
+				log(std::string(ret_msg).append(oss.str()));
+				return std::string(ret_msg).append(oss.str());
+			}
+			// Remove this message and the three preceding (should be Parsing Acks)
+			--recvd_msg_iter_;
+			--recvd_msg_iter_;
+			--recvd_msg_iter_;
+			for(int i = 0; i < 4; ++i) recvd_msg_iter_ = recvd_msg_buf_.erase(recvd_msg_iter_);
+			log(std::string("MT20hub::SetCANFwTurretPosition() returns successfully.\n"));
+			return std::string("");
+		}
+		++recvd_msg_iter_;
+	}
+	
+	// If we get here, there was an error
+	snprintf(ret_msg, 4095, "Error: failed to find expected response from device in MT20hub::SetShutterState()\n");
+	log(std::string(ret_msg));
+	return std::string(ret_msg);
+}
+
+std::string MT20hub::SetCANFwObservPosition(long pos)
+{
+	log(std::string("Entering MT20hub::SetCANFwObservPosition().\n"));
+	char ret_msg [4096];
+	push_msg(EXPERIMENT);
+	++msgs_to_recv_;
+	std::string recv_ret;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwObservPosition() after EXPERIMENT\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	switch(pos)
+	{
+		case 0:
+			push_msg(SET_CANFWOBSERV_0);
+			break;
+		case 1:
+			push_msg(SET_CANFWOBSERV_1);
+			break;
+		case 2:
+			push_msg(SET_CANFWOBSERV_2);
+			break;
+		case 3:
+			push_msg(SET_CANFWOBSERV_3);
+			break;
+		case 4:
+			push_msg(SET_CANFWOBSERV_4);
+			break;
+		case 5:
+			push_msg(SET_CANFWOBSERV_5);
+			break;
+		case 6:
+			push_msg(SET_CANFWOBSERV_6);
+			break;
+		case 7:
+			push_msg(SET_CANFWOBSERV_7);
+			break;
+		
+		default:
+			snprintf(ret_msg, 4095, "Error: invalid filterwheel position %l requested in MT20hub::SetCANFwObservPosition()\n", pos);
+			log(std::string(ret_msg));
+			return std::string(ret_msg);
+	}
+	++msgs_to_recv_;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwObservPosition() after SET_CANFWOBSERV_%l\n", pos);
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	push_msg(GO_EXP);
+	msgs_to_recv_ += 2;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::SetCANFwObservPosition() after GO_EXP\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+
+	// Find message containing ExperimentReport
+	// Check that it is RepNum 601 (Experiment executed); otherwise, there was an error
+	recvd_msg_iter_ = recvd_msg_buf_.begin();
+	char repnum[] = "601";
+	char experr[] = "0";
+
+	while(recvd_msg_iter_ != recvd_msg_buf_.end())
+	{
+		TiXmlHandle handle(&(*recvd_msg_iter_));
+		TiXmlElement* element;
+
+		if((element = handle.FirstChildElement().FirstChildElement("ExperimentReport").FirstChildElement("RepNum").Element()) != NULL)
+		{
+			// Found appropriate message
+			// Check there were no errors
+			if(strcmp(element->GetText(), repnum) != 0)
+			{
+				snprintf(ret_msg, 4095, "Error: failed to receive expected response (MsgNum 601: Experiment executed) from device in MT20hub::SetCANFwObservPosition()\nmessage received:\n");
+				std::ostringstream oss;
+				oss << "Received messages:" << std::endl;
+				dump_to_stdout(&(*recvd_msg_iter_), &oss);
+				log(std::string(ret_msg).append(oss.str()));
+				return std::string(ret_msg).append(oss.str());
+			}
+			element = handle.FirstChildElement().FirstChildElement("ExperimentReport").FirstChildElement("ExpErrors").Element();
+			if(strcmp(element->GetText(), experr) != 0)
+			{
+				snprintf(ret_msg, 4095, "Error: detected device error in MT20hub::SetCANFwObservPosition()\nmessage received:\n");
+				std::ostringstream oss;
+				oss << "Received messages:" << std::endl;
+				dump_to_stdout(&(*recvd_msg_iter_), &oss);
+				log(std::string(ret_msg).append(oss.str()));
+				return std::string(ret_msg).append(oss.str());
+			}
+			// Remove this message and the three preceding (should be Parsing Acks)
+			--recvd_msg_iter_;
+			--recvd_msg_iter_;
+			--recvd_msg_iter_;
+			for(int i = 0; i < 4; ++i) recvd_msg_iter_ = recvd_msg_buf_.erase(recvd_msg_iter_);
+			log(std::string("MT20hub::SetCANFwObservPosition() returns successfully.\n"));
+			return std::string("");
+		}
+		++recvd_msg_iter_;
+	}
+	
+	// If we get here, there was an error
+	snprintf(ret_msg, 4095, "Error: failed to find expected response from device in MT20hub::SetShutterState()\n");
+	log(std::string(ret_msg));
+	return std::string(ret_msg);
+}
+
 std::string MT20hub::GetAttenuatorState(long* state)
 {
 	log(std::string("Entering MT20hub::GetAttenuatorState().\n"));
@@ -1585,6 +1809,58 @@ std::string MT20hub::make_msg(char* data, int msg_num)
 			break;
 		case SET_FILTWL_7:
 			snprintf(msg_end, 3071, "%s%i%s", set_filtwl_1, filtwl_empty7, set_filtwl_2);
+			break;
+
+		// CAN Filter turret commands
+		case SET_CANFWTURRET_0:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty0, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_1:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty1, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_2:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty2, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_3:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty3, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_4:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty4, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_5:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty5, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_6:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty6, set_canfwturret_2);
+			break;
+		case SET_CANFWTURRET_7:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty7, set_canfwturret_2);
+			break;
+
+		// CAN Emission fw commands
+		case SET_CANFWOBSERV_0:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty0, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_1:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty1, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_2:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty2, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_3:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty3, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_4:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty4, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_5:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty5, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_6:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty6, set_canfwobserv_2);
+			break;
+		case SET_CANFWOBSERV_7:
+			snprintf(msg_end, 3071, "%s%i%s", set_canfwobserv_1, canfwobserv_empty7, set_canfwobserv_2);
 			break;
 
 		default:

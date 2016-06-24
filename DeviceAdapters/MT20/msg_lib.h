@@ -117,6 +117,27 @@
 #define SET_FILTWL_6				1406
 #define SET_FILTWL_7				1407
 
+// The following was added without knowledge of where these "message numbers"
+// came from (it is not clear if they are arbitrary numbers or not). Here I am
+// just choosing numbers that don't clash with others defined above.
+#define SET_CANFWTURRET_0	10000
+#define SET_CANFWTURRET_1	10001
+#define SET_CANFWTURRET_2	10002
+#define SET_CANFWTURRET_3	10003
+#define SET_CANFWTURRET_4	10004
+#define SET_CANFWTURRET_5	10005
+#define SET_CANFWTURRET_6	10006
+#define SET_CANFWTURRET_7	10007
+
+#define SET_CANFWOBSERV_0	10010
+#define SET_CANFWOBSERV_1	10011
+#define SET_CANFWOBSERV_2	10012
+#define SET_CANFWOBSERV_3	10013
+#define SET_CANFWOBSERV_4	10014
+#define SET_CANFWOBSERV_5	10015
+#define SET_CANFWOBSERV_6	10016
+#define SET_CANFWOBSERV_7	10017
+
 
 
 
@@ -322,6 +343,30 @@ const char go_exp[] = "\">\r\n<Controlling>\r\n<GoExp>999</GoExp>\r\n</Controlli
 	const int filtwl_empty6 = 6;
 	// msg_num = 1407
 	const int filtwl_empty7 = 7;
+
+	// set CAN filter turret position; concatenate set_canfwturret_1 + canfwturret_X + set_canfwturret_2
+	const char set_canfwturret_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n<Commands ComId=\"1\">\r\n<SetFilterwheel Id=\"CAN.0-Fw_turret.0\" Par=\"Val\"><WaitTime>100</WaitTime><Position>";
+	const char set_canfwturret_2[] = "</Position><Store>0></Store></SetFilterwheel>\r\n</Commands>\r\n</Experiment>\r\n</PCMsg>\r\n";
+	const int canfwturret_empty0 = 0;
+	const int canfwturret_empty1 = 1;
+	const int canfwturret_empty2 = 2;
+	const int canfwturret_empty3 = 3;
+	const int canfwturret_empty4 = 4;
+	const int canfwturret_empty5 = 5;
+	const int canfwturret_empty6 = 6;
+	const int canfwturret_empty7 = 7;
+
+	// set CAN emission fw position; concatenate set_canfwobserv_1 + canfwobserv_X + set_canfwobserv_2
+	const char set_canfwobserv_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n<Commands ComId=\"1\">\r\n<SetFilterwheel Id=\"CAN.0-Fw_observ.0\" Par=\"Val\"><WaitTime>100</WaitTime><Position>";
+	const char set_canfwobserv_2[] = "</Position><Store>0></Store></SetFilterwheel>\r\n</Commands>\r\n</Experiment>\r\n</PCMsg>\r\n";
+	const int canfwobserv_empty0 = 0;
+	const int canfwobserv_empty1 = 1;
+	const int canfwobserv_empty2 = 2;
+	const int canfwobserv_empty3 = 3;
+	const int canfwobserv_empty4 = 4;
+	const int canfwobserv_empty5 = 5;
+	const int canfwobserv_empty6 = 6;
+	const int canfwobserv_empty7 = 7;
 
 
 //////////////////////////////////////////////////////////////////////////////

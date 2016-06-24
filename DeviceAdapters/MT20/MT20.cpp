@@ -33,6 +33,8 @@ const char* g_MT20HUB = "MT20-HUB";
 const char* g_MT20Burner = "MT20-Burner";
 const char* g_MT20Shutter = "MT20-Shutter";
 const char* g_MT20Filterwheel = "MT20-Filterwheel";
+const char* g_CANFwTurret = "FilterTurret";
+const char* g_CANFwObserv = "EmissionFw";
 const char* g_MT20Attenuator = "MT20-Attenuator";
 
 #ifdef WIN32
@@ -52,6 +54,8 @@ MODULE_API void InitializeModuleData()
 	RegisterDevice(g_MT20Burner, MM::StateDevice, "Olympus MT20 burner");
 	RegisterDevice(g_MT20Shutter, MM::ShutterDevice, "Olympus MT20 shutter");
 	RegisterDevice(g_MT20Filterwheel, MM::StateDevice, "Olympus MT20 filterwheel");
+	RegisterDevice(g_CANFwTurret, MM::StateDevice, "Filter turret");
+	RegisterDevice(g_CANFwObserv, MM::StateDevice, "Emission filter wheel");
 	RegisterDevice(g_MT20Attenuator, MM::StateDevice, "Olympus MT20 attenuator");
 }
 
@@ -77,6 +81,14 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
 	else if(strcmp(deviceName, g_MT20Filterwheel) == 0)
 	{
 		return new MT20Filterwheel();
+	}
+	else if(strcmp(deviceName, g_CANFwTurret) == 0)
+	{
+		return new CANFwTurret();
+	}
+	else if(strcmp(deviceName, g_CANFwObserv) == 0)
+	{
+		return new CANFwObserv();
 	}
 	else if(strcmp(deviceName, g_MT20Attenuator) == 0)
 	{
@@ -667,6 +679,260 @@ int MT20Filterwheel::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 			pProp->Set(position_);
 			return ERR_SET_FAILED;
 		}
+	}
+
+	return DEVICE_OK;
+}
+
+
+/****************************************************************************
+		Filter turret
+		Reposition filterwheel
+****************************************************************************/
+
+CANFwTurret::CANFwTurret() :
+	numPos_(8),
+	busy_(false),
+	initialized_(false),
+	position_(0)
+{
+	InitializeDefaultErrorMessages();
+	
+	SetErrorText(ERR_INVALID_POSITION, "Invalid Filter turret position requested");
+	SetErrorText(ERR_EXECUTING_CMD, "Filter turret failed to execute requested operation");
+	SetErrorText(ERR_SET_FAILED, "Filter turret failed to successfuly set the requested position");
+}
+
+CANFwTurret::~CANFwTurret()
+{
+	Shutdown();
+}
+
+int CANFwTurret::Initialize()
+{
+	if(initialized_) return DEVICE_OK;
+
+	// set property list
+
+	// Name
+	int ret = CreateProperty(MM::g_Keyword_Name, g_CANFwTurret, MM::String, true);
+	if(ret != DEVICE_OK) return ret;
+
+	// Description
+	ret = CreateProperty(MM::g_Keyword_Description, "Filter turret", MM::String, true);
+	if(ret != DEVICE_OK) return ret;
+
+	// create default positions and labels
+	const int bufSize = 1024;
+	char buf[bufSize];
+	for (unsigned long i=0; i < numPos_; ++i)
+	{
+		snprintf(buf, bufSize, "State-%ld", i);
+		SetPositionLabel(i, buf);
+		snprintf(buf, bufSize, "%ld", i);
+		AddAllowedValue(MM::g_Keyword_Closed_Position, buf);
+	}
+
+	// State
+	CPropertyAction* act = new CPropertyAction (this, &CANFwTurret::OnState);
+	ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, act);
+	if(ret != DEVICE_OK) return ret;
+
+	// Label
+	act = new CPropertyAction (this, &CStateBase::OnLabel);
+	ret = CreateProperty(MM::g_Keyword_Label, "", MM::String, false, act);
+	if(ret != DEVICE_OK) return ret;
+
+	busy_ = true;
+	ret = UpdateStatus();
+	busy_ = false;
+
+	if(ret != DEVICE_OK) return ret;
+
+	initialized_ = true;
+
+	return DEVICE_OK;
+}
+
+int CANFwTurret::Shutdown()
+{
+	if(initialized_) initialized_ = false;
+
+	return DEVICE_OK;
+}
+
+void CANFwTurret::GetName(char* pszName) const
+{
+	CDeviceUtils::CopyLimitedString(pszName, g_CANFwTurret);
+}
+
+bool CANFwTurret::Busy()
+{
+	return busy_;
+}
+
+int CANFwTurret::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+	std::string ret;
+	char ret_msg[4096];
+
+	if(eAct == MM::BeforeGet)
+	{
+		// Querying device has not been implemented; return last-set position
+		pProp->Set(position_);
+	}
+
+	if(eAct == MM::AfterSet)
+	{
+		long pos;
+		pProp->Get(pos);
+		if(pos >= (long) numPos_ || pos < 0)
+		{
+			sprintf(ret_msg, "Invalid position %l requested of Filter turret in CANFwTurret::OnState() after set\n", pos);
+			LogMessage(ret_msg, false);
+			pProp->Set(position_);
+			return ERR_INVALID_POSITION;
+		}
+
+		busy_ = true;
+		ret = mt20.SetCANFwTurretPosition(pos);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::SetCANFwTurretPosition() returns error in CANFwTurret::OnState() after set\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
+
+		position_ = pos;
+	}
+
+	return DEVICE_OK;
+}
+
+
+/****************************************************************************
+		Emission FW
+		Reposition filterwheel
+****************************************************************************/
+
+CANFwObserv::CANFwObserv() :
+	numPos_(8),
+	busy_(false),
+	initialized_(false),
+	position_(0)
+{
+	InitializeDefaultErrorMessages();
+	
+	SetErrorText(ERR_INVALID_POSITION, "Invalid Emission fw position requested");
+	SetErrorText(ERR_EXECUTING_CMD, "Emission fw failed to execute requested operation");
+	SetErrorText(ERR_SET_FAILED, "Emission fw failed to successfuly set the requested position");
+}
+
+CANFwObserv::~CANFwObserv()
+{
+	Shutdown();
+}
+
+int CANFwObserv::Initialize()
+{
+	if(initialized_) return DEVICE_OK;
+
+	// set property list
+
+	// Name
+	int ret = CreateProperty(MM::g_Keyword_Name, g_CANFwObserv, MM::String, true);
+	if(ret != DEVICE_OK) return ret;
+
+	// Description
+	ret = CreateProperty(MM::g_Keyword_Description, "Emission filter wheel", MM::String, true);
+	if(ret != DEVICE_OK) return ret;
+
+	// create default positions and labels
+	const int bufSize = 1024;
+	char buf[bufSize];
+	for (unsigned long i=0; i < numPos_; ++i)
+	{
+		snprintf(buf, bufSize, "State-%ld", i);
+		SetPositionLabel(i, buf);
+		snprintf(buf, bufSize, "%ld", i);
+		AddAllowedValue(MM::g_Keyword_Closed_Position, buf);
+	}
+
+	// State
+	CPropertyAction* act = new CPropertyAction (this, &CANFwObserv::OnState);
+	ret = CreateProperty(MM::g_Keyword_State, "0", MM::Integer, false, act);
+	if(ret != DEVICE_OK) return ret;
+
+	// Label
+	act = new CPropertyAction (this, &CStateBase::OnLabel);
+	ret = CreateProperty(MM::g_Keyword_Label, "", MM::String, false, act);
+	if(ret != DEVICE_OK) return ret;
+
+	busy_ = true;
+	ret = UpdateStatus();
+	busy_ = false;
+
+	if(ret != DEVICE_OK) return ret;
+
+	initialized_ = true;
+
+	return DEVICE_OK;
+}
+
+int CANFwObserv::Shutdown()
+{
+	if(initialized_) initialized_ = false;
+
+	return DEVICE_OK;
+}
+
+void CANFwObserv::GetName(char* pszName) const
+{
+	CDeviceUtils::CopyLimitedString(pszName, g_CANFwObserv);
+}
+
+bool CANFwObserv::Busy()
+{
+	return busy_;
+}
+
+int CANFwObserv::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+	std::string ret;
+	char ret_msg[4096];
+
+	if(eAct == MM::BeforeGet)
+	{
+		// Querying device has not been implemented; return last-set position
+		pProp->Set(position_);
+	}
+
+	if(eAct == MM::AfterSet)
+	{
+		long pos;
+		pProp->Get(pos);
+		if(pos >= (long) numPos_ || pos < 0)
+		{
+			sprintf(ret_msg, "Invalid position %l requested of Emission fw in CANFwObserv::OnState() after set\n", pos);
+			LogMessage(ret_msg, false);
+			pProp->Set(position_);
+			return ERR_INVALID_POSITION;
+		}
+
+		busy_ = true;
+		ret = mt20.SetCANFwObservPosition(pos);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::SetCANFwObservPosition() returns error in CANFwObserv::OnState() after set\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
+
+		position_ = pos;
 	}
 
 	return DEVICE_OK;

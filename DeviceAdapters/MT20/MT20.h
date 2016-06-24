@@ -162,6 +162,60 @@ private:
 	long position_;
 };
 
+
+class CANFwTurret : public CStateDeviceBase<CANFwTurret>
+{
+public:
+	CANFwTurret();
+	~CANFwTurret();
+
+	// MMDevice API
+	int Initialize();
+	int Shutdown();
+
+	void GetName(char* pszName) const;
+	bool Busy();
+	unsigned long GetNumberOfPositions() const {return numPos_;}
+
+	// action interface
+	int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+private:
+   CANFwTurret& operator=(const CANFwTurret&); // Hide to prevent warnings
+
+	const unsigned long numPos_;
+	bool busy_;
+	bool initialized_;
+	long position_;
+};
+
+
+class CANFwObserv : public CStateDeviceBase<CANFwObserv>
+{
+public:
+	CANFwObserv();
+	~CANFwObserv();
+
+	// MMDevice API
+	int Initialize();
+	int Shutdown();
+
+	void GetName(char* pszName) const;
+	bool Busy();
+	unsigned long GetNumberOfPositions() const {return numPos_;}
+
+	// action interface
+	int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+private:
+   CANFwObserv& operator=(const CANFwObserv&); // Hide to prevent warnings
+
+	const unsigned long numPos_;
+	bool busy_;
+	bool initialized_;
+	long position_;
+};
+
 //////////////////////////////////////////////////////////////////////////////
 // Attenuator class
 // Query position of or reposition 14-position attenuator

@@ -83,6 +83,9 @@ public:
 	// sets filterwheel position to pos
 	std::string SetFilterwheelPosition(long pos);
 
+	std::string SetCANFwTurretPosition(long pos);
+	std::string SetCANFwObservPosition(long pos);
+
 	// sets value of state to current attenuator state
 	std::string GetAttenuatorState(long* state);
 	// sets attenuator position to state
