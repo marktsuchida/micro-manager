@@ -1016,6 +1016,69 @@ std::string MT20hub::SetFilterwheelPosition(long pos)
 	return std::string(ret_msg);
 }
 
+std::string MT20hub::GetCANFwTurretPosition(long* pos)
+{
+	log(std::string("Entering MT20hub::GetCANFwTurretPosition().\n"));
+	char ret_msg [4096];
+	push_msg(GET_STATE_CAN_0_TURRET_0);
+	msgs_to_recv_ += 2;							// expect parsing Ack and state
+	std::string recv_ret;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::GetCANFwTurretPosition() after GET_STATE\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	
+	// Find first message with State Id to identify correct message
+	// Then check Device Id state to find burner status
+	recvd_msg_iter_ = recvd_msg_buf_.begin();
+	
+	char state_id[] = "CAN.0-Turret.0";
+	char device_id[] = "CAN.0-Turret.0";
+
+	while(recvd_msg_iter_ != recvd_msg_buf_.end())
+	{
+		TiXmlHandle handle(&(*recvd_msg_iter_));
+		TiXmlElement* element;
+
+		if((element = handle.FirstChildElement().FirstChildElement("State").Element()) != NULL)
+		{
+			// Found appropriate element
+			
+			const char* msg_state_id = element->Attribute("Id");
+			if(strcmp(state_id, msg_state_id) == 0)		// this is the correct message
+			{
+				// message has been found; remove the document from revd_msg_buffer_ after retrieving filterwheel position
+				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 1).Element();
+				int state;
+				int query_attribute_ret = element->QueryIntAttribute("Pos", &state);
+				if(query_attribute_ret == TIXML_WRONG_TYPE || query_attribute_ret == TIXML_NO_ATTRIBUTE)
+				{
+					snprintf(ret_msg, 4095, "Error: TinyXML returns TIXML_WRONG_TYPE or TIXML_NO_ATTRIBUTE parsing message in MT20hub::GetCANFwTurretPosition()\n");
+					std::ostringstream oss;
+					oss << "Received messages:" << std::endl;
+					dump_to_stdout(&(*recvd_msg_iter_), &oss);
+					log(std::string(ret_msg).append(oss.str()));
+					return std::string(ret_msg).append(oss.str());
+				}
+				*pos = state;
+				recvd_msg_iter_ = recvd_msg_buf_.erase(recvd_msg_iter_);	// erase BB.0-LS.0 setting
+				--recvd_msg_iter_;
+				recvd_msg_buf_.erase(recvd_msg_iter_);						// preceding message should be Parsing Ack; erase it, too
+				log(std::string("MT20hub::GetCANFwTurretPosition() returns successfully.\n"));
+				return std::string("");
+			}
+		}
+		++recvd_msg_iter_;
+	}
+	
+	// Couldn't find message in recvd_msg_buf_
+	snprintf(ret_msg, 4095, "Error: failed to identify correct response during MT20hub::GetCANFwTurretPosition()\n");
+	log(std::string(ret_msg));
+	return std::string(ret_msg);
+}
+
 std::string MT20hub::SetCANFwTurretPosition(long pos)
 {
 	log(std::string("Entering MT20hub::SetCANFwTurretPosition().\n"));
@@ -1124,6 +1187,69 @@ std::string MT20hub::SetCANFwTurretPosition(long pos)
 	
 	// If we get here, there was an error
 	snprintf(ret_msg, 4095, "Error: failed to find expected response from device in MT20hub::SetShutterState()\n");
+	log(std::string(ret_msg));
+	return std::string(ret_msg);
+}
+
+std::string MT20hub::GetCANFwObservPosition(long* pos)
+{
+	log(std::string("Entering MT20hub::GetCANFwObservPosition().\n"));
+	char ret_msg [4096];
+	push_msg(GET_STATE_CAN_0_FILTWL_0);
+	msgs_to_recv_ += 2;							// expect parsing Ack and state
+	std::string recv_ret;
+	if( (recv_ret = do_read_write()).size() > 0)
+	{
+		snprintf(ret_msg, 4095, "Error: do_read_write() returns error during MT20hub::GetCANFwObservPosition() after GET_STATE\n");
+		log(recv_ret.append(std::string(ret_msg)));
+		return recv_ret.append(std::string(ret_msg));
+	}
+	
+	// Find first message with State Id to identify correct message
+	// Then check Device Id state to find burner status
+	recvd_msg_iter_ = recvd_msg_buf_.begin();
+	
+	char state_id[] = "CAN.0-Filtwl.0";
+	char device_id[] = "CAN.0-Filtwl.0";
+
+	while(recvd_msg_iter_ != recvd_msg_buf_.end())
+	{
+		TiXmlHandle handle(&(*recvd_msg_iter_));
+		TiXmlElement* element;
+
+		if((element = handle.FirstChildElement().FirstChildElement("State").Element()) != NULL)
+		{
+			// Found appropriate element
+			
+			const char* msg_state_id = element->Attribute("Id");
+			if(strcmp(state_id, msg_state_id) == 0)		// this is the correct message
+			{
+				// message has been found; remove the document from revd_msg_buffer_ after retrieving filterwheel position
+				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 1).Element();
+				int state;
+				int query_attribute_ret = element->QueryIntAttribute("Pos", &state);
+				if(query_attribute_ret == TIXML_WRONG_TYPE || query_attribute_ret == TIXML_NO_ATTRIBUTE)
+				{
+					snprintf(ret_msg, 4095, "Error: TinyXML returns TIXML_WRONG_TYPE or TIXML_NO_ATTRIBUTE parsing message in MT20hub::GetCANFwObservPosition()\n");
+					std::ostringstream oss;
+					oss << "Received messages:" << std::endl;
+					dump_to_stdout(&(*recvd_msg_iter_), &oss);
+					log(std::string(ret_msg).append(oss.str()));
+					return std::string(ret_msg).append(oss.str());
+				}
+				*pos = state;
+				recvd_msg_iter_ = recvd_msg_buf_.erase(recvd_msg_iter_);	// erase BB.0-LS.0 setting
+				--recvd_msg_iter_;
+				recvd_msg_buf_.erase(recvd_msg_iter_);						// preceding message should be Parsing Ack; erase it, too
+				log(std::string("MT20hub::GetCANFwObservPosition() returns successfully.\n"));
+				return std::string("");
+			}
+		}
+		++recvd_msg_iter_;
+	}
+	
+	// Couldn't find message in recvd_msg_buf_
+	snprintf(ret_msg, 4095, "Error: failed to identify correct response during MT20hub::GetCANFwObservPosition()\n");
 	log(std::string(ret_msg));
 	return std::string(ret_msg);
 }

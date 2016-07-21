@@ -778,7 +778,16 @@ int CANFwTurret::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 	if(eAct == MM::BeforeGet)
 	{
-		// Querying device has not been implemented; return last-set position
+		busy_ = true;
+		ret = mt20.GetCANFwTurretPosition(&position_);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::GetCANFwTurretPosition() returns error in CANFwTurret::OnState() before get\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
 		pProp->Set(position_);
 	}
 
@@ -805,7 +814,23 @@ int CANFwTurret::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 			return ERR_EXECUTING_CMD;
 		}
 
-		position_ = pos;
+		busy_ = true;
+		ret = mt20.GetCANFwTurretPosition(&position_);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::GetCANFwTurretPosition() returns error in CANFwTurret::OnState() after set\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
+		if(position_ != pos)
+		{
+			sprintf(ret_msg, "Failed to successfully set Filter turret position to %l in CANFwTurret::OnState(); current position is %l", pos, position_);
+			LogMessage(ret_msg, false);
+			pProp->Set(position_);
+			return ERR_SET_FAILED;
+		}
 	}
 
 	return DEVICE_OK;
@@ -905,7 +930,16 @@ int CANFwObserv::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 
 	if(eAct == MM::BeforeGet)
 	{
-		// Querying device has not been implemented; return last-set position
+		busy_ = true;
+		ret = mt20.GetCANFwObservPosition(&position_);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::GetCANFwObservPosition() returns error in CANFwObserv::OnState() before get\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
 		pProp->Set(position_);
 	}
 
@@ -932,7 +966,23 @@ int CANFwObserv::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 			return ERR_EXECUTING_CMD;
 		}
 
-		position_ = pos;
+		busy_ = true;
+		ret = mt20.GetCANFwObservPosition(&position_);
+		busy_ = false;
+
+		if(ret.size() > 0)
+		{
+			sprintf(ret_msg, "MT20hub::GetCANFwObservPosition() returns error in CANFwObserv::OnState() after set\n");
+			LogMessage(ret.append(std::string(ret_msg)), false);
+			return ERR_EXECUTING_CMD;
+		}
+		if(position_ != pos)
+		{
+			sprintf(ret_msg, "Failed to successfully set Filter turret position to %l in CANFwObserv::OnState(); current position is %l", pos, position_);
+			LogMessage(ret_msg, false);
+			pProp->Set(position_);
+			return ERR_SET_FAILED;
+		}
 	}
 
 	return DEVICE_OK;
