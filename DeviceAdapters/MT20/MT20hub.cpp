@@ -1050,7 +1050,7 @@ std::string MT20hub::GetCANFwTurretPosition(long* pos)
 			if(strcmp(state_id, msg_state_id) == 0)		// this is the correct message
 			{
 				// message has been found; remove the document from revd_msg_buffer_ after retrieving filterwheel position
-				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 1).Element();
+				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 0).Element();
 				int state;
 				int query_attribute_ret = element->QueryIntAttribute("Pos", &state);
 				if(query_attribute_ret == TIXML_WRONG_TYPE || query_attribute_ret == TIXML_NO_ATTRIBUTE)
@@ -1220,7 +1220,7 @@ std::string MT20hub::GetCANFwObservPosition(long* pos)
 			if(strcmp(state_id, msg_state_id) == 0)		// this is the correct message
 			{
 				// message has been found; remove the document from revd_msg_buffer_ after retrieving filterwheel position
-				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 1).Element();
+				element = handle.FirstChildElement().FirstChildElement("State").ChildElement("Device" , 0).Element();
 				int state;
 				int query_attribute_ret = element->QueryIntAttribute("Pos", &state);
 				if(query_attribute_ret == TIXML_WRONG_TYPE || query_attribute_ret == TIXML_NO_ATTRIBUTE)
