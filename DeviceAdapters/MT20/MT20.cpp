@@ -691,7 +691,7 @@ int MT20Filterwheel::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
 ****************************************************************************/
 
 CANFwTurret::CANFwTurret() :
-	numPos_(8),
+	numPos_(6),
 	busy_(false),
 	initialized_(false),
 	position_(0)

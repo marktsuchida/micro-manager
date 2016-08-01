@@ -1062,7 +1062,8 @@ std::string MT20hub::GetCANFwTurretPosition(long* pos)
 					log(std::string(ret_msg).append(oss.str()));
 					return std::string(ret_msg).append(oss.str());
 				}
-				*pos = state;
+				// The position in the reply is 2n+1 (1, 3, 5, 7, 9, 11)
+				*pos = (state - 1) / 2;
 				recvd_msg_iter_ = recvd_msg_buf_.erase(recvd_msg_iter_);	// erase BB.0-LS.0 setting
 				--recvd_msg_iter_;
 				recvd_msg_buf_.erase(recvd_msg_iter_);						// preceding message should be Parsing Ack; erase it, too
@@ -1111,12 +1112,6 @@ std::string MT20hub::SetCANFwTurretPosition(long pos)
 			break;
 		case 5:
 			push_msg(SET_CANFWTURRET_5);
-			break;
-		case 6:
-			push_msg(SET_CANFWTURRET_6);
-			break;
-		case 7:
-			push_msg(SET_CANFWTURRET_7);
 			break;
 		
 		default:
@@ -1955,12 +1950,6 @@ std::string MT20hub::make_msg(char* data, int msg_num)
 			break;
 		case SET_CANFWTURRET_5:
 			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty5, set_canfwturret_2);
-			break;
-		case SET_CANFWTURRET_6:
-			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty6, set_canfwturret_2);
-			break;
-		case SET_CANFWTURRET_7:
-			snprintf(msg_end, 3071, "%s%i%s", set_canfwturret_1, canfwturret_empty7, set_canfwturret_2);
 			break;
 
 		// CAN Emission fw commands

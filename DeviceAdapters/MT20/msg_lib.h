@@ -347,14 +347,24 @@ const char go_exp[] = "\">\r\n<Controlling>\r\n<GoExp>999</GoExp>\r\n</Controlli
 	// set CAN filter turret position; concatenate set_canfwturret_1 + canfwturret_X + set_canfwturret_2
 	const char set_canfwturret_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n<Commands ComId=\"1\">\r\n<SetFilterwheel Id=\"CAN.0-Turret.0\" Par=\"Val\"><WaitTime>100</WaitTime><Position>";
 	const char set_canfwturret_2[] = "</Position><Store>0></Store></SetFilterwheel>\r\n</Commands>\r\n</Experiment>\r\n</PCMsg>\r\n";
+
+	const char set_canfwturret_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n"
+		"<Commands ComId=\"1\">\r\n"
+		"<GetPar Id=\"CAN.0-Turret.0\"><WaitTime>100</WaitTime><ParNum>POSITION</ParNum><Store>4</Store></GetPar>\r\n"
+		"<SetVar Id=\"4\"><WaitTime>500</WaitTime><Expression>Var4 MOD 2</Expression></SetVar>\r\n"
+		"<SetVar Id=\"4\"><WaitTime>100</WaitTime><Expression>Var4 ADD ";
+	const char set_canfwturret_2[] = "</Expression></SetVar>\r\n"
+		"<SetFilterwheel Id=\"CAN.0-Turret.0\" Par=\"DAddr\"><WaitTime>100</WaitTime><Position>4</Position><Store>0</Store></SetFilterwheel>\r\n"
+		"</Commands>\r\n"
+		"</Experiment>\r\n"
+		"</PCMsg>\r\n";
+
 	const int canfwturret_empty0 = 0;
-	const int canfwturret_empty1 = 1;
-	const int canfwturret_empty2 = 2;
-	const int canfwturret_empty3 = 3;
-	const int canfwturret_empty4 = 4;
-	const int canfwturret_empty5 = 5;
-	const int canfwturret_empty6 = 6;
-	const int canfwturret_empty7 = 7;
+	const int canfwturret_empty1 = 2;
+	const int canfwturret_empty2 = 4;
+	const int canfwturret_empty3 = 6;
+	const int canfwturret_empty4 = 8;
+	const int canfwturret_empty5 = 10;
 
 	// set CAN emission fw position; concatenate set_canfwobserv_1 + canfwobserv_X + set_canfwobserv_2
 	const char set_canfwobserv_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n<Commands ComId=\"1\">\r\n<SetFilterwheel Id=\"CAN.0-Filtwl.0\" Par=\"Val\"><WaitTime>100</WaitTime><Position>";
