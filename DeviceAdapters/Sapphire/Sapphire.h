@@ -51,12 +51,18 @@ public:
 	// X=xyzzy, just return the result token xyzzy.
 	std::string queryLaser( std::string thisToken )
 	{
+      MM::MMTime minInterval(500000.0);
+      MM::MMTime elapsed = GetCurrentMMTime() - lastCommandTime_;
+      if (elapsed < minInterval)
+         CDeviceUtils::SleepMs((minInterval - elapsed).getMsec());
+
 		std::string result;
 		std::stringstream msg;
 		msg << "?" << thisToken;
 
 		Purge();
 		Send(msg.str());
+      lastCommandTime_ = GetCurrentMMTime();
 		int ret = ReceiveOneLine();
 		string buf_string = currentIOBuffer();
 
@@ -97,12 +103,18 @@ public:
 	// send the string X=value, then query ?X and return the string result
 	std::string  setLaser( std::string thisToken, std::string thisValue)
 	{
+      MM::MMTime minInterval(500000.0);
+      MM::MMTime elapsed = GetCurrentMMTime() - lastCommandTime_;
+      if (elapsed < minInterval)
+         CDeviceUtils::SleepMs((minInterval - elapsed).getMsec());
+
 		stringstream msg;
 		std::string result;
 
 		msg << thisToken << "=" << thisValue;
 		Purge();
 		Send(msg.str());
+      lastCommandTime_ = GetCurrentMMTime();
 		ReceiveOneLine();
 		string buf_string = currentIOBuffer();
 
@@ -191,6 +203,8 @@ private:
    bool busy_;
    MM::MMTime changedTime_;
    std::string port_;
+
+   MM::MMTime lastCommandTime_;
 
 	// todo move these to DevImpl for better data hiding
 	const std::string queryToken_;

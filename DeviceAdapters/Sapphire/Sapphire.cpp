@@ -88,6 +88,7 @@ Sapphire::Sapphire(const char* name) :
    name_(name), 
    busy_(false),
    changedTime_(0.0),
+   lastCommandTime_(0.0),
 	queryToken_("?"),
 	powerSetpointToken_("P"),
 	powerReadbackToken_("P"),
