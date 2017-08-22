@@ -345,9 +345,6 @@ const char go_exp[] = "\">\r\n<Controlling>\r\n<GoExp>999</GoExp>\r\n</Controlli
 	const int filtwl_empty7 = 7;
 
 	// set CAN filter turret position; concatenate set_canfwturret_1 + canfwturret_X + set_canfwturret_2
-	const char set_canfwturret_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n<Commands ComId=\"1\">\r\n<SetFilterwheel Id=\"CAN.0-Turret.0\" Par=\"Val\"><WaitTime>100</WaitTime><Position>";
-	const char set_canfwturret_2[] = "</Position><Store>0></Store></SetFilterwheel>\r\n</Commands>\r\n</Experiment>\r\n</PCMsg>\r\n";
-
 	const char set_canfwturret_1[] = "\">\r\n<Experiment ExpId=\"999\">\r\n"
 		"<Commands ComId=\"1\">\r\n"
 		"<GetPar Id=\"CAN.0-Turret.0\"><WaitTime>100</WaitTime><ParNum>POSITION</ParNum><Store>4</Store></GetPar>\r\n"
