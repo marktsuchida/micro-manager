@@ -1491,6 +1491,12 @@ public final class DisplayUIController implements Closeable, WindowListener,
          return 0;
       }
    }
+
+   /**
+    * 
+    * @return Human readable String explaining the pixel Type
+    * TODO: Formalize these Strings
+    */
    
    public String getPixelType() {
       try {
@@ -1507,10 +1513,15 @@ public final class DisplayUIController implements Closeable, WindowListener,
                default:
                   break;
             }
-         } 
-         // TODO: RGB 
-      }
-      catch (IOException e) {
+         } else if (numComponents == 3) {
+            switch (bytesPerPixel) {
+               case 4:
+                  return "RGB32";
+               case 8:
+                  return "RGB64;";
+            }
+         }
+      } catch (IOException e) {
       }
       return "Unknown pixelType";
    }
