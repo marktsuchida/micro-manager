@@ -142,8 +142,11 @@ public final class FileMenu {
                   @Override
                   public void run() {
                      try {
-                        Datastore store = studio_.data().loadData(path,
-                           isVirtual);
+                        MMStudio internalStudio = (MMStudio) studio_;
+                        Datastore store = studio_.data().loadData( 
+                                 internalStudio.getApplication().getMainWindow(), 
+                                 path,
+                                 isVirtual);
                         if (store != null && store.getAnyImage() != null) {
                            studio_.displays().loadDisplays(store);
                            studio_.displays().manage(store);
