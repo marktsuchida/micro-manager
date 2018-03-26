@@ -19,6 +19,12 @@ tags
 *.vcxproj.user
 ipch/
 
+# Visual Studio projects and solutions
+# Files ignored because we autogenerate
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
 # GNU build system
 *.la
 *.lo
