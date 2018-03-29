@@ -41,8 +41,19 @@ allprojects {
          mavenLocal()
       }
    }
+
+   // Allow passing javac options on command line via -Pjavacflags=...
+   if (project.hasProperty('javacflags')) {
+      gradle.projectsEvaluated {
+         tasks.withType(JavaCompile) {
+            for (flag in project.property('javacflags').split()) {
+               options.compilerArgs << flag
+            }
+         }
+      }
+   }
 }
 
 ext {
-   stageDir = project.file('stage')
+   stageDir = project.file(project.hasProperty('stageDir') ? project.property('stageDir') : 'stage')
 }

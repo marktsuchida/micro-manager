@@ -1,9 +1,10 @@
-jar_DATA = MMAcqEngine.jar
+AUTOMAKE_OPTIONS = foreign
 
-.PHONY: MMAcqEngine.jar
+all-local:
+	$(GRADLE) -Pjavacflags="$(JAVACFLAGS)" assemble
 
-MMAcqEngine.jar:
-	$(ANT) -Dmm.javacflags="$(JAVACFLAGS)" $(ANTFLAGS) jar
+install-data-hook:
+	@echo "Note: Jars are currently installed by toplevel 'make install'"
 
 clean-local:
-	$(ANT) $(ANTFLAGS) clean
+	$(GRADLE) clean

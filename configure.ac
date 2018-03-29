@@ -102,57 +102,14 @@ AS_IF([test "x$want_java" != xno],
 AC_ARG_VAR([JAVACFLAGS], [Java compiler flags])
 test "${JAVACFLAGS+set}" = set || JAVACFLAGS="-Xlint:all,-path,-serial"
 
+GRADLE=`cd $srcdir; pwd`/gradlew
+AC_SUBST([GRADLE])
+
 MM_JNI_LIBRARY_PREFIX_SUFFIX
 AM_CONDITIONAL([NONSTD_JNI_PREFIX], [test "x$JNI_PREFIX" != xlib])
 
 
-AC_ARG_VAR([ANT], [Ant command])
-AC_ARG_VAR([ANTFLAGS], [Ant flags])
-test "${ANTFLAGS+set}" = set || ANTFLAGS="-logger org.apache.tools.ant.listener.SimpleBigProjectLogger"
-MM_ARG_WITH_ANT
-AS_IF([test "x$want_ant" != xno],
-[
-   AS_IF([test -z "$ANT"],
-   [
-      AS_IF([test -z "$ANTCMD"],
-      [
-         AC_PATH_PROG([ANTCMD], [ant])
-      ])
-      AS_IF([test -z "$ANTCMD"],
-      [
-         have_ant=no
-      ],
-      [
-         have_ant=yes
-         AS_IF([test -n "$JAVA_HOME"],
-         [
-            ANT="JAVA_HOME=$JAVA_HOME $ANTCMD"
-         ],
-         [
-            ANT="$ANTCMD"
-         ])
-      ])
-
-      AS_IF([test "x$want_ant" = xyes],
-      [
-         AS_IF([test "x$have_ant" = xno],
-         [
-            AC_MSG_FAILURE([--with-ant was given, but test for Ant failed])
-         ])
-      ])
-   ],
-   [
-      have_ant=yes
-   ])
-   use_ant=$have_ant
-],
-[
-   use_ant=no
-])
-
-
 build_mmcorej=yes
-test "x$use_ant" = xno && { build_mmcorej=no; nobuild_mmcorej_reason="(Apache Ant not available)"; }
 test "x$use_java" = xno && { build_mmcorej=no; nobuild_mmcorej_reason="(Java not available)"; }
 test -z "$SWIG" && { build_mmcorej=no; nobuild_mmcorej_reason="(SWIG not available)"; }
 test "x$can_build_mmcore" = xno && { build_mmcorej=no; nobuild_mmcorej_reason="(cannot build MMCore)"; }
@@ -303,25 +260,6 @@ fi
 AC_SUBST([imagejjar])
 
 
-# Make the building of Magellan conditional on availability of non-free JARs.
-# (This is a bit of a hack, in part since it needs to run before fetchdeps, but
-# it will have to suffice for now.)
-#build_magellan=yes
-#AC_CHECK_FILE([$srcdir/../3rdparty/classext/DT1.2.jar],
-#              [],
-#              [build_magellan=no])
-#AC_CHECK_FILE([$srcdir/../3rdparty/classext/ij3d-bin.jar],
-#              [],
-#              [build_magellan=no])
-#AC_CHECK_FILE([$srcdir/../3rdparty/classext/ima3d_.jar],
-#              [],
-#              [build_magellan=no])
-#AM_CONDITIONAL([BUILD_MAGELLAN],
-#               [test "x$build_magellan" = xyes])
-AM_CONDITIONAL([BUILD_MAGELLAN],
-               [false])
-
-
 # Java dependencies.
 AC_ARG_ENABLE([install-dependency-jars],
    [AS_HELP_STRING([--disable-install-dependency-jars],
@@ -375,7 +313,6 @@ AS_IF([test "x$build_secretdeviceadapters" = xyes], [
 
 AC_CONFIG_FILES(m4_strip([
    Makefile
-   buildscripts/AntExtensions/Makefile
    testing/Makefile
    MMDevice/Makefile
    MMDevice/unittest/Makefile
@@ -405,9 +342,6 @@ echo "   JAVA_HOME    = $JAVA_HOME"
 echo "   JNI_CPPFLAGS = $JNI_CPPFLAGS"
 echo "   JAVA         = $JAVA"
 echo "   JAVACFLAGS   = $JAVACFLAGS"
-if test "x$use_ant" = xyes; then
-echo "   ANT          = $ANT"
-fi
 echo ""
 fi
 

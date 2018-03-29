@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 if BUILD_MMCOREJ
 
 fetchdeps:
-	$(ANT) $(ANTFLAGS) -f buildscripts/fetchdeps.xml
+	@echo "'fetchdeps' is no longer required; Java dependencies are fetched by Gradle as needed"
 
 endif
 
@@ -18,7 +18,6 @@ MMCORE_DIR = MMCore
 endif
 
 if BUILD_MMCOREJ
-ANTEXTENSIONS = buildscripts/AntExtensions
 MMCOREJ_DIR = MMCoreJ_wrap
 endif
 
@@ -33,7 +32,6 @@ endif
 
 if BUILD_JAVA_APP
 
-ANTEXTENSIONS = buildscripts/AntExtensions
 JAVA_APP_DIRS = mmstudio acqEngine libraries autofocus plugins scripts
 SYSTEMTEST_DIR = systemtest
 
@@ -102,25 +100,8 @@ endif # BUILD_JAVA_APP
 
 if INSTALL_DEPENDENCY_JARS
 
-if INSTALL_AS_IMAGEJ_PLUGIN
-# When installing into existing ImageJ, don't install ij.jar
-DEPENDENCY_JAR_CONFS=compile,runtime
-else
-DEPENDENCY_JAR_CONFS=compile,imagej,runtime
-endif
-
 install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(jardir)
-	@for jar in $(srcdir)/dependencies/artifacts/{$(DEPENDENCY_JAR_CONFS)}/*.jar; do \
-		echo $(INSTALL_DATA) -c $$jar $(DESTDIR)$(jardir); \
-		$(INSTALL_DATA) -c $$jar $(DESTDIR)$(jardir); \
-	done
-
-uninstall-local:
-	@for jar in $(srcdir)/dependencies/artifacts/{$(DEPENDENCY_JAR_CONFS)}/*.jar; do \
-		echo rm -f $(DESTDIR)$(jardir)/`basename $$jar`; \
-		rm -f $(DESTDIR)$(jardir)/`basename $$jar`; \
-	done
+	$(GRADLE) -Pjavacflags="$(JAVACFLAGS)" -PstageDir=$(mmdatadir) :package:java:stage
 
 endif # INSTALL_DEPENDENCY_JARS
 
@@ -130,7 +111,6 @@ CLEANFILES = $(launcher_SCRIPTS)
 
 # TODO: Building of DeviceAdapters could be made optional.
 SUBDIRS = \
-	$(ANTEXTENSIONS) \
 	$(TESTING_DIR) \
 	MMDevice \
 	$(MMCORE_DIR) \
@@ -139,7 +119,7 @@ SUBDIRS = \
 	$(JAVA_APP_DIRS) \
 	DeviceAdapters \
 	$(SECRETDEVICEADAPTERS) \
-	$(SYSTEMTEST_DIR)
+	$(SYSTEMTEST_DIR) \
 	bindist
 
 

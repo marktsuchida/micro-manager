@@ -1,4 +1,3 @@
-
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
 # We use -fno-strict-aliasing (which disables certain optimizations in GCC and
@@ -45,10 +44,7 @@ swig_java_outdir = mmcorej/src/main/java
 MMCoreJ.stamp: $(swig_sources)
 	@rm -f MMCoreJ.tmp
 	@touch MMCoreJ.tmp
-	$(MKDIR_P) $(swig_java_outdir)/mmcorej
-	$(SWIG) -c++ -java -package mmcorej -outdir $(swig_java_outdir)/mmcorej -module MMCoreJ \
-		"-DMMCOREJ_LIBRARY_PATH=\"$(MMCOREJ_LIBRARY_PATH)\"" \
-		-o MMCoreJ_wrap.cxx $(srcdir)/MMCoreJ.i
+	$(GRADLE) :MMCoreJ_wrap:mmcorej:runSwig "-Pmmcorej_library_path=\"$(MMCOREJ_LIBRARY_PATH)\""
 	@mv -f MMCoreJ.tmp $@
 MMCoreJ_wrap.h MMCoreJ_wrap.cxx: MMCoreJ.stamp
 	@if test -f $@; then :; else \
@@ -63,16 +59,11 @@ libMMCoreJ_wrap_la_LDFLAGS = -module -avoid-version -shrext $(JNI_SUFFIX) -no-un
 libMMCoreJ_wrap_la_LIBADD = ../MMCore/libMMCore.la
 
 
-jar_DATA = MMCoreJ.jar
+all-local:
+	$(GRADLE) -Pjavacflags="$(JAVACFLAGS)" assemble
 
-# Use MMCoreJ_wrap.{h,cxx} to ensure SWIG has been run, but use the phony
-# target FORCE to always run Ant so that the Java source mtime is checked
-MMCoreJ.jar: MMCoreJ_wrap.h MMCoreJ_wrap.cxx FORCE
-	$(ANT) -Dmm.javacflags="$(JAVACFLAGS)" $(ANTFLAGS) jar
-
-.PHONY: FORCE
-
-FORCE:
+install-data-hook:
+	@echo "Note: Jars are currently installed by toplevel 'make install'"
 
 
 if NONSTD_JNI_PREFIX
@@ -90,11 +81,8 @@ uninstall-hook:
 endif # NONSTD_JNI_PREFIX
 
 
-CLEANFILES = MMCoreJ.stamp MMCoreJ_wrap.h MMCoreJ_wrap.cxx
-
 clean-local:
-	$(ANT) $(ANTFLAGS) clean
-	-rm -rf mmcorej/src
+	$(GRADLE) clean
 
 
 EXTRA_DIST = license.txt
