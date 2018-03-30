@@ -9,9 +9,10 @@
 -- "solution", "project", or "configuration" work by changing the "current"
 -- solution or project or configuration to modify.
 
+require "geniescripts.boost"
 require "geniescripts.jni"
-require "geniescripts.python"
 require "geniescripts.protobuf"
+require "geniescripts.python"
 
 
 -- Use Windows7.1SDK instead of vc100. TODO Once we switch to newer VS, it
@@ -89,21 +90,19 @@ solution "micro-manager"
 
    startproject "MMCore"
 
-   group "Micro-Manager"
-      include "MMDevice"
-      include "MMCore"
+   include "MMDevice"
+   include "MMCore"
 
-      if JAVA_HOME then
-         include "MMCoreJ_wrap"
-      else
-         print("Skipping MMCoreJ_wrap")
-      end
+   if JAVA_HOME then
+      include "MMCoreJ_wrap"
+   else
+      print("Skipping MMCoreJ_wrap")
+   end
 
-      if PYTHON_INCLUDE_DIR and NUMPY_INCLUDE_DIRS then
-         include "MMCorePy_wrap"
-      else
-         print("Skipping MMCorePy_wrap")
-      end
+   if PYTHON_INCLUDE_DIR and NUMPY_INCLUDE_DIRS then
+      include "MMCorePy_wrap"
+   else
+      print("Skipping MMCorePy_wrap")
+   end
 
-   group "DeviceAdapters"
-      include "DeviceAdapters"
+   include "DeviceAdapters"

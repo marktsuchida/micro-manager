@@ -35,8 +35,8 @@ else
    print("Using Python: " .. PYTHON)
 
    PYTHON_INCLUDE_DIR = os.outputof(PYTHON ..
-         " -c 'import distutils.sysconfig as c, sys;" ..
-         " sys.stdout.write(c.get_python_inc(True))'")
+         ' -c "import distutils.sysconfig as c, sys;' ..
+         ' sys.stdout.write(c.get_python_inc(True))"')
    if PYTHON_INCLUDE_DIR then
       print("Using Python headers at " .. PYTHON_INCLUDE_DIR)
    else
@@ -44,14 +44,14 @@ else
    end
 
    print("Checking for NumPy...")
-   if not os.execute(PYTHON .. " -c 'import numpy'") then
+   if not os.execute(PYTHON .. ' -c "import numpy"') then
       print("NumPy is not available")
       print("Not generating projects requiring NumPy")
    else
       local numpy_inc_dirs = os.outputof(PYTHON ..
-         " -c 'from __future__ import print_function;" ..
-         " import numpy.distutils.misc_util as c;" ..
-         " [print(d) for d in c.get_numpy_include_dirs()]'")
+         ' -c "from __future__ import print_function;' ..
+         ' import numpy.distutils.misc_util as c;' ..
+         ' [print(d) for d in c.get_numpy_include_dirs()]"')
       if not numpy_inc_dirs then
          print("Cannot determine NumPy include dirs")
       end

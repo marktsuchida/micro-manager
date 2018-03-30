@@ -9,11 +9,11 @@ newoption {
 local protoc_flag = _OPTIONS["protoc"]
 
 newoption {
-   trigger = "protobuf-libs",
+   trigger = "protobuf-libdir",
    value = "DIR",
    description = "Protocol Buffers libraries",
 }
-local protobuf_libs_flag = _OPTIONS["protobuf-libs"]
+local protobuf_libdir_flag = _OPTIONS["protobuf-libdir"]
 
 newoption {
    trigger = "protobuf-include",
@@ -46,5 +46,5 @@ end
 
 -- TODO Check if values look correct
 -- TODO Add guess of location from protoc path
-PROTOBUF_LIBRARY_DIR = protobuf_libs_flag
+PROTOBUF_LIBRARY_DIR = protobuf_libdir_flag
 PROTOBUF_INCLUDE_DIR = protobuf_include_flag

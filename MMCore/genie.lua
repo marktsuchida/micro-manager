@@ -2,6 +2,14 @@ project "MMCore"
    basedir "."
    kind "StaticLib"
 
+   libdirs {
+      BOOST_LIBRARY_DIR,
+   }
+
+   includedirs {
+      BOOST_INCLUDE_DIR,
+   }
+
    links {
       "MMDevice",
    }
