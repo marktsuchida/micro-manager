@@ -63,14 +63,9 @@ import org.micromanager.internal.utils.MDUtils;
 import org.micromanager.internal.utils.ProgressBar;
 import org.micromanager.internal.utils.ReportingUtils;
 
+import static org.micromanager.data.internal.multipagetiff.TiffConstants.*;
+
 public final class MultipageTiffReader {
-
-   private static final long BIGGEST_INT_BIT = (long) Math.pow(2, 31);
-   private static final char STRIP_OFFSETS = MultipageTiffWriter.STRIP_OFFSETS;
-   private static final char STRIP_BYTE_COUNTS = MultipageTiffWriter.STRIP_BYTE_COUNTS;
-
-   private static final char MM_METADATA = MultipageTiffWriter.MM_METADATA;
-
    // Note: ordering of axes here matches that in MDUtils.getLabel().
    // If you change this, you will need to track down places where the size of
    // the position list is implicitly kept (e.g. in the size of a single index
@@ -96,7 +91,7 @@ public final class MultipageTiffReader {
                        Image firstImage) {
       masterStorage_ = masterStorage;
       summaryMetadata_ = summaryMD;
-      byteOrder_ = MultipageTiffWriter.BYTE_ORDER;
+      byteOrder_ = BYTE_ORDER;
    }
 
    void setIndexMap(HashMap<Coords, Long> indexMap) {
@@ -202,7 +197,7 @@ public final class MultipageTiffReader {
       int summaryMDHeader = tiffHeader.getInt(32);
       channel.close();
       ra.close();
-      return summaryMDHeader == MultipageTiffWriter.SUMMARY_MD_HEADER;
+      return summaryMDHeader == SUMMARY_MD_HEADER;
    }
 
    public SummaryMetadata getSummaryMetadata() {
@@ -237,7 +232,7 @@ public final class MultipageTiffReader {
       int header = mdInfo.getInt(0);
       int length = mdInfo.getInt(4);
 
-      if (header != MultipageTiffWriter.SUMMARY_MD_HEADER) {
+      if (header != SUMMARY_MD_HEADER) {
          ReportingUtils.logError("Summary Metadata Header Incorrect");
       }
 
@@ -273,9 +268,9 @@ public final class MultipageTiffReader {
       boolean didCreate = false;
       ByteBuffer buffer = null;
       try {
-         long offset = readOffsetHeaderAndOffset(MultipageTiffWriter.COMMENTS_OFFSET_HEADER, 24);
+         long offset = readOffsetHeaderAndOffset(COMMENTS_OFFSET_HEADER, 24);
          ByteBuffer header = readIntoBuffer(offset, 8);
-         if (header.getInt(0) != MultipageTiffWriter.COMMENTS_HEADER) {
+         if (header.getInt(0) != COMMENTS_HEADER) {
             ReportingUtils.logError("Can't find image comments in file: " + file_.getName());
             return;
          }
@@ -331,9 +326,9 @@ public final class MultipageTiffReader {
    }
 
    private void readIndexMap() throws IOException {
-      long offset = readOffsetHeaderAndOffset(MultipageTiffWriter.INDEX_MAP_OFFSET_HEADER, 8);
+      long offset = readOffsetHeaderAndOffset(INDEX_MAP_OFFSET_HEADER, 8);
       ByteBuffer header = readIntoBuffer(offset, 8);
-      if (header.getInt(0) != MultipageTiffWriter.INDEX_MAP_HEADER) {
+      if (header.getInt(0) != INDEX_MAP_HEADER) {
          throw new InvalidIndexMapException();
       }
       int numMappings = header.getInt(4);
@@ -535,7 +530,9 @@ public final class MultipageTiffReader {
       }
    }
 
+   private static final long BIGGEST_INT_BIT = (long) Math.pow(2, 31);
    private long unsignInt(int i) {
+
       long val = Integer.MAX_VALUE & i;
       if (i < 0) {
          val += BIGGEST_INT_BIT;
@@ -606,16 +603,16 @@ public final class MultipageTiffReader {
    // TODO: There is a very similar but not identical method in the Writer
    private int writeDisplaySettings(DisplaySettings settings, long filePosition) throws IOException {
       String settingsJSON = ((DefaultDisplaySettings) settings).toPropertyMap().toJSON();
-      int numReservedBytes = settingsJSON.length() * MultipageTiffWriter.DISPLAY_SETTINGS_BYTES_PER_CHANNEL;
-      ByteBuffer header = ByteBuffer.allocate(8).order(MultipageTiffWriter.BYTE_ORDER);
+      int numReservedBytes = settingsJSON.length() * DISPLAY_SETTINGS_BYTES_PER_CHANNEL;
+      ByteBuffer header = ByteBuffer.allocate(8).order(BYTE_ORDER);
       ByteBuffer buffer = ByteBuffer.wrap(getBytesFromString(settingsJSON));
-      header.putInt(0, MultipageTiffWriter.DISPLAY_SETTINGS_HEADER);
+      header.putInt(0, DISPLAY_SETTINGS_HEADER);
       header.putInt(4, numReservedBytes);
       fileChannel_.write(header, filePosition);
       fileChannel_.write(buffer, filePosition + 8);
 
-      ByteBuffer offsetHeader = ByteBuffer.allocate(8).order(MultipageTiffWriter.BYTE_ORDER);
-      offsetHeader.putInt(0, MultipageTiffWriter.DISPLAY_SETTINGS_OFFSET_HEADER);
+      ByteBuffer offsetHeader = ByteBuffer.allocate(8).order(BYTE_ORDER);
+      offsetHeader.putInt(0, DISPLAY_SETTINGS_OFFSET_HEADER);
       offsetHeader.putInt(4, (int) filePosition);
       fileChannel_.write(offsetHeader, 16);
       return numReservedBytes + 8;
@@ -627,7 +624,7 @@ public final class MultipageTiffReader {
       //entry
       int numMappings = coordsToOffset_.size();
       ByteBuffer buffer = ByteBuffer.allocate(8 + 20 * numMappings).order(byteOrder_);
-      buffer.putInt(0, MultipageTiffWriter.INDEX_MAP_HEADER);
+      buffer.putInt(0, INDEX_MAP_HEADER);
       buffer.putInt(4, numMappings);
       int position = 2;
       for (Coords coords : coordsToOffset_.keySet()) {
@@ -648,7 +645,7 @@ public final class MultipageTiffReader {
       fileChannel_.write(buffer, filePosition);
 
       ByteBuffer header = ByteBuffer.allocate(8).order(byteOrder_);
-      header.putInt(0, MultipageTiffWriter.INDEX_MAP_OFFSET_HEADER);
+      header.putInt(0, INDEX_MAP_OFFSET_HEADER);
       header.putInt(4, (int) filePosition);
       fileChannel_.write(header, 8);
       return buffer.capacity();

@@ -26,7 +26,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import ij.ImageJ;
-import ij.io.TiffDecoder;
 import ij.process.LUT;
 import java.awt.Color;
 import java.io.File;
@@ -68,43 +67,9 @@ import org.micromanager.internal.utils.ImageUtils;
 import org.micromanager.internal.utils.ReportingUtils;
 import org.micromanager.internal.utils.UserProfileStaticInterface;
 
+import static org.micromanager.data.internal.multipagetiff.TiffConstants.*;
+
 public final class MultipageTiffWriter {
-
-   private static final long BYTES_PER_GIG = 1073741824;
-   private static final long MAX_FILE_SIZE = 4 * BYTES_PER_GIG;
-   static final int DISPLAY_SETTINGS_BYTES_PER_CHANNEL = 256;
-   //1 MB for now...might have to increase
-   private static final long SPACE_FOR_COMMENTS = 1048576;
-   static final int INDEX_MAP_OFFSET_HEADER = 54773648;
-   static final int INDEX_MAP_HEADER = 3453623;
-   static final int DISPLAY_SETTINGS_OFFSET_HEADER = 483765892;
-   static final int DISPLAY_SETTINGS_HEADER = 347834724;
-   static final int COMMENTS_OFFSET_HEADER = 99384722;
-   static final int COMMENTS_HEADER = 84720485;
-
-   private static final char ENTRIES_PER_IFD = 13;
-   //Required TIFF tags
-   private static final char WIDTH = 256;
-   private static final char HEIGHT = 257;
-   private static final char BITS_PER_SAMPLE = 258;
-   private static final char COMPRESSION = 259;
-   private static final char PHOTOMETRIC_INTERPRETATION = 262;
-   private static final char IMAGE_DESCRIPTION = 270;
-   static final char STRIP_OFFSETS = 273;
-   private static final char SAMPLES_PER_PIXEL = 277;
-   private static final char ROWS_PER_STRIP = 278;
-   static final char STRIP_BYTE_COUNTS = 279;
-   private static final char X_RESOLUTION = 282;
-   private static final char Y_RESOLUTION = 283;
-   private static final char RESOLUTION_UNIT = 296;
-   private static final char IJ_METADATA_BYTE_COUNTS = TiffDecoder.META_DATA_BYTE_COUNTS;
-   private static final char IJ_METADATA = TiffDecoder.META_DATA;
-   static final char MM_METADATA = 51123;
-
-   static final int SUMMARY_MD_HEADER = 2355492;
-
-   static final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
-
    private final StorageMultipageTiff masterStorage_;
    private RandomAccessFile raFile_;
    private FileChannel fileChannel_;

@@ -58,20 +58,20 @@ public final class OMEMetadata {
    private final TreeMap<Integer, Indices> seriesIndices_ = new TreeMap<Integer, Indices>();
    private final TreeMap<String, Integer> tiffDataIndexMap_;
    private int numSlices_, numChannels_;
-   
+
    private class Indices {
       //specific to each series independent of file
       int tiffDataIndex_ = -1;
       //specific to each series indpeendent of file
       int planeIndex_ = 0;
    }
-   
+
    public OMEMetadata(StorageMultipageTiff mpt) {
       mptStorage_ = mpt;
       tiffDataIndexMap_ = new TreeMap<String,Integer>();
       metadata_ = MetadataTools.createOMEXMLMetadata();
    }
-   
+
    public static String getOMEStringPointerToMasterFile(String filename, String uuid)  {
       try {
          IMetadata md = MetadataTools.createOMEXMLMetadata();
@@ -109,7 +109,7 @@ public final class OMEMetadata {
       Indices indices = new Indices();
       indices.planeIndex_ = 0;
       indices.tiffDataIndex_ = 0;
-      seriesIndices_.put(seriesIndex, indices);  
+      seriesIndices_.put(seriesIndex, indices);
       numSlices_ = mptStorage_.getIntendedSize(Coords.Z);
       numChannels_ = mptStorage_.getIntendedSize(Coords.CHANNEL);
       // We need to know bytes per pixel, which requires having an Image handy.
@@ -123,7 +123,7 @@ public final class OMEMetadata {
       String axisOrder = "XY";
       if (mptStorage_.getSummaryMetadata().getOrderedAxes() != null) {
          List<String> order = mptStorage_.getSummaryMetadata().getOrderedAxes();
-         axisOrder += (order.indexOf(Coords.Z) < order.indexOf(Coords.CHANNEL)) 
+         axisOrder += (order.indexOf(Coords.Z) < order.indexOf(Coords.CHANNEL))
                  ? "ZCT" : "CZT";
       }
       else {
@@ -132,7 +132,7 @@ public final class OMEMetadata {
       }
       //Last one is samples per pixel
       MetadataTools.populateMetadata(metadata_, seriesIndex, baseFileName,
-            MultipageTiffWriter.BYTE_ORDER.equals(ByteOrder.LITTLE_ENDIAN),
+            TiffConstants.BYTE_ORDER.equals(ByteOrder.LITTLE_ENDIAN),
             axisOrder,
             "uint" + repImage.getBytesPerPixel() * 8,
             repImage.getWidth(), repImage.getHeight(),
@@ -223,14 +223,14 @@ public final class OMEMetadata {
 
                   if (backIndex >= 0) {
                      tiffDataIndex = tiffDataIndexMap_.get(MDUtils.generateLabel(channel, backIndex, frameSearchIndex, position));
-                     if (tiffDataIndex != null) {                   
+                     if (tiffDataIndex != null) {
                         break;
                      }
                      backIndex--;
                   }
                   if (forwardIndex < numSlices_) {
                      tiffDataIndex = tiffDataIndexMap_.get(MDUtils.generateLabel(channel, forwardIndex, frameSearchIndex, position));
-                     if (tiffDataIndex != null) {                  
+                     if (tiffDataIndex != null) {
                         break;
                      }
                      forwardIndex++;
@@ -308,7 +308,7 @@ public final class OMEMetadata {
       int channel = coords.getChannel();
 
       // ifdCount is 0 when a new file started, tiff data plane count is 0 at a new position
-      metadata_.setTiffDataFirstZ(new NonNegativeInteger(slice), position, indices.tiffDataIndex_);         
+      metadata_.setTiffDataFirstZ(new NonNegativeInteger(slice), position, indices.tiffDataIndex_);
       metadata_.setTiffDataFirstC(new NonNegativeInteger(channel), position, indices.tiffDataIndex_);
       metadata_.setTiffDataFirstT(new NonNegativeInteger(frame), position, indices.tiffDataIndex_);
       metadata_.setTiffDataIFD(new NonNegativeInteger(ifdCount), position, indices.tiffDataIndex_);
