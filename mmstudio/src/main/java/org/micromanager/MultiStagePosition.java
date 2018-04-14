@@ -51,7 +51,7 @@ public final class MultiStagePosition {
       defaultXYStage_ = "";
       properties_ = new HashMap<String, String>();
    }
-   
+
    /**
     * Convenient constructor where the motion system consists of one XY stage and one focus stage.
     * @param xyStage name
@@ -62,16 +62,16 @@ public final class MultiStagePosition {
     */
    public MultiStagePosition(String xyStage, double x, double y, String zStage, double z) {
       this();
-      
+
       // create and add xy position
       StagePosition xyPos = new StagePosition();
       xyPos.numAxes = 2;
       xyPos.stageName = xyStage;
       xyPos.x = x;
       xyPos.y = y;
-      defaultXYStage_ = xyStage; 
+      defaultXYStage_ = xyStage;
       add(xyPos);
-      
+
       // create and add z position
       StagePosition zPos = new StagePosition();
       zPos.numAxes = 1;
@@ -80,7 +80,7 @@ public final class MultiStagePosition {
       defaultZStage_ = zStage;
       add(zPos);
    }
-   
+
    /**
     * Copy constructor.
     * @param aMps - another instance of the MultiStagePoswition class
@@ -105,11 +105,11 @@ public final class MultiStagePosition {
    public void add(StagePosition sp) {
       stagePosList_.add(sp);
    }
-   
+
    public void remove(StagePosition sp) {
       stagePosList_.remove(sp);
    }
-   
+
    /**
     * Number of stages
     * @return number of stages in this MultiStagePosition object
@@ -117,7 +117,7 @@ public final class MultiStagePosition {
    public int size() {
       return stagePosList_.size();
    }
-   
+
    /**
     * Return stage position based on index
     * @param idx - position index
@@ -126,7 +126,7 @@ public final class MultiStagePosition {
    public StagePosition get(int idx) {
       return stagePosList_.get(idx);
    }
-   
+
    /**
     * Add a generalized property-value par to the position.
     * @param key
@@ -144,7 +144,7 @@ public final class MultiStagePosition {
       return new ArrayList<String>(properties_.keySet()).
             toArray(new String[properties_.size()]);
    }
-   
+
    /**
     * Checks if the position has a particular property
     * @param key
@@ -153,9 +153,9 @@ public final class MultiStagePosition {
    public boolean hasProperty(String key) {
       return properties_.containsKey(key);
    }
-   
+
    /**
-    * Returns property value for a given key (name) 
+    * Returns property value for a given key (name)
     * @param key
     * @return value associated with the key
     */
@@ -165,10 +165,10 @@ public final class MultiStagePosition {
       else
          return null;
    }
-   
+
    /**
     * Returns position for a specific stage.
-    * @param stageName 
+    * @param stageName
     * @return position of the specified stage
     */
    public StagePosition get(String stageName) {
@@ -178,7 +178,7 @@ public final class MultiStagePosition {
       }
       return null;
    }
-   
+
    /**
     * Returns position label.
     * @return label associated with this MultiStagePosition
@@ -194,7 +194,7 @@ public final class MultiStagePosition {
    public void setLabel(String lab) {
       label_ = lab;
    }
-   
+
    /**
     * Defines which stage serves as focus control
     * @param stage new focus stage
@@ -202,15 +202,15 @@ public final class MultiStagePosition {
    public void setDefaultZStage(String stage) {
       defaultZStage_ = stage;
    }
-   
+
    public String getDefaultZStage() {
       return defaultZStage_;
    }
-   
+
    public String getDefaultXYStage() {
       return defaultXYStage_;
    }
-   
+
    /**
     * Defines which stage serves as the XY motion control device
     * @param stage new default XY stage
@@ -233,12 +233,12 @@ public final class MultiStagePosition {
          } else if (sp.numAxes == 2) {
             core_.setXYPosition(sp.stageName, sp.x, sp.y);
          }
-         
+
          // wait for one device at the time
          // TODO: this should not be here
          core_.waitForDevice(sp.stageName);
       }
-      
+
    }
 
    /**
@@ -254,7 +254,7 @@ public final class MultiStagePosition {
       }
       return 0.0;
    }
-   
+
    /**
     * Returns "Y" coordinate of the position.
     * @return Y position of the default XY stage
@@ -267,7 +267,7 @@ public final class MultiStagePosition {
       }
       return 0.0;
    }
-   
+
   /**
    * Returns "Z" - focus coordinate of the position.
     * @return Position of the default Focus stage
@@ -280,7 +280,7 @@ public final class MultiStagePosition {
       }
       return 0.0;
    }
-   
+
    /**
     * Sets grid parameters for the rectangular grid
     * @param row
@@ -290,7 +290,7 @@ public final class MultiStagePosition {
       gridRow_ = row;
       gridCol_ = col;
    }
-   
+
    /**
     * Returns rectangular grid row.
     * @return row
@@ -298,7 +298,7 @@ public final class MultiStagePosition {
    public int getGridRow() {
       return gridRow_;
    }
-   
+
    /**
     * Returns rectangular grid column.
     * @return column
@@ -388,10 +388,10 @@ public final class MultiStagePosition {
             PropertyKey.MULTI_STAGE_POSITION__DEFAULT_XY_STAGE.key(), null);
       ret.defaultZStage_ = pmap.getString(
             PropertyKey.MULTI_STAGE_POSITION__DEFAULT_Z_STAGE.key(), null);
-      ret.gridRow_ = pmap.getInteger(
-            PropertyKey.MULTI_STAGE_POSITION__GRID_ROW.key(), 0);
-      ret.gridCol_ = pmap.getInteger(
-            PropertyKey.MULTI_STAGE_POSITION__GRID_COLUMN.key(), 0);
+      ret.gridRow_ = pmap.getAsNumber(
+            PropertyKey.MULTI_STAGE_POSITION__GRID_ROW.key(), 0).intValue();
+      ret.gridCol_ = pmap.getAsNumber(
+            PropertyKey.MULTI_STAGE_POSITION__GRID_COLUMN.key(), 0).intValue();
       ret.properties_ = new HashMap<String, String>();
       for (String key : pmap.getPropertyMap(
             PropertyKey.MULTI_STAGE_POSITION__PROPERTIES.key(),

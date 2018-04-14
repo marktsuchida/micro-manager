@@ -28,7 +28,7 @@ import org.micromanager.data.Metadata;
 import static org.micromanager.data.internal.PropertyKey.*;
 
 /**
- * This class holds the metadata for ImagePlanes. It is intended to be 
+ * This class holds the metadata for ImagePlanes. It is intended to be
  * immutable; construct new Metadatas using a MetadataBuilder, or by using
  * the copy() method (which provides a MetadataBuilder). Any fields that are
  * not explicitly set will default to null.
@@ -250,7 +250,7 @@ public final class DefaultMetadata implements Metadata {
    @Override
    public Integer getBitDepth() {
       return pmap_.containsKey(BIT_DEPTH.key()) ?
-            pmap_.getInteger(BIT_DEPTH.key(), 0) : null;
+            pmap_.getAsNumber(BIT_DEPTH.key(), 0).intValue() : null;
    }
 
    @Override
@@ -268,13 +268,13 @@ public final class DefaultMetadata implements Metadata {
    @Override
    public Integer getBinning() {
       return pmap_.containsKey(BINNING.key()) ?
-            pmap_.getInteger(BINNING.key(), 0) : null;
+            pmap_.getAsNumber(BINNING.key(), 0).intValue() : null;
    }
 
    @Override
    public Long getImageNumber() {
       return pmap_.containsKey(IMAGE_NUMBER.key()) ?
-            pmap_.getLong(IMAGE_NUMBER.key(), 0L) : null;
+            pmap_.getAsNumber(IMAGE_NUMBER.key(), 0L).longValue() : null;
    }
 
    @Override

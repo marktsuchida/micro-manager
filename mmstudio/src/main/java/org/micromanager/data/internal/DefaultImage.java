@@ -135,8 +135,8 @@ public final class DefaultImage implements Image {
       }
 
 
-      pixelWidth_ = formatPmap.getInteger(PropertyKey.WIDTH.key(), 0);
-      pixelHeight_ = formatPmap.getInteger(PropertyKey.HEIGHT.key(), 0);
+      pixelWidth_ = formatPmap.getAsNumber(PropertyKey.WIDTH.key(), 0).intValue();
+      pixelHeight_ = formatPmap.getAsNumber(PropertyKey.HEIGHT.key(), 0).intValue();
       if (pixelWidth_ <= 0 || pixelHeight_ <= 0) {
          throw new IllegalArgumentException("Zero or negative image size");
       }
@@ -170,8 +170,8 @@ public final class DefaultImage implements Image {
             (DefaultMetadata) metadata;
       coords_ = coords == null ? Coordinates.builder().build() : coords;
       rawPixels_ = DirectBuffers.bufferFromArray(pixels);
-      pixelWidth_ = format.getInteger(PropertyKey.WIDTH.key(), 0);
-      pixelHeight_ = format.getInteger(PropertyKey.HEIGHT.key(), 0);
+      pixelWidth_ = format.getAsNumber(PropertyKey.WIDTH.key(), 0).intValue();
+      pixelHeight_ = format.getAsNumber(PropertyKey.HEIGHT.key(), 0).intValue();
       pixelType_ = format.getStringAsEnum(PropertyKey.PIXEL_TYPE.key(),
             PixelType.class, null);
       if (pixelWidth_ * pixelHeight_ * pixelType_.getBytesPerPixel() !=

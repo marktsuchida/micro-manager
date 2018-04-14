@@ -149,7 +149,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          if (pmap.containsKey(key())) {
-            return new JsonPrimitive(pmap.getInteger(key(), 0));
+            return new JsonPrimitive(pmap.getAsNumber(key(), 0));
          }
          return null;
       }
@@ -183,7 +183,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          if (pmap.containsKey(key())) {
-            return new JsonPrimitive(pmap.getInteger(key(), 0));
+            return new JsonPrimitive(pmap.getAsNumber(key(), 0));
          }
          return null;
       }
@@ -231,7 +231,7 @@ public enum PropertyKey {
          PropertyMap intendedDims = pmap.getPropertyMap(INTENDED_DIMENSIONS.
                key(), PropertyMaps.emptyPropertyMap());
          if (intendedDims.containsKey(Coords.CHANNEL)) {
-            return new JsonPrimitive(intendedDims.getInteger(Coords.CHANNEL, 0));
+            return new JsonPrimitive(intendedDims.getAsNumber(Coords.CHANNEL, 0));
          }
          return null;
       }
@@ -265,7 +265,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(Coords.CHANNEL, 0));
+         return new JsonPrimitive(pmap.getAsNumber(Coords.CHANNEL, 0));
       }
    },
 
@@ -331,7 +331,7 @@ public enum PropertyKey {
          }
          JsonObject jo = new JsonObject();
          for (String axis : pmap.keySet()) {
-            jo.addProperty(axis, pmap.getInteger(axis, 0));
+            jo.addProperty(axis, pmap.getAsNumber(axis, 0));
          }
          return jo;
       }
@@ -449,7 +449,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(Coords.TIME_POINT, 0));
+         return new JsonPrimitive(pmap.getAsNumber(Coords.TIME_POINT, 0));
       }
 
       @Override
@@ -469,7 +469,7 @@ public enum PropertyKey {
          PropertyMap intendedDims = pmap.getPropertyMap(INTENDED_DIMENSIONS.
                key(), PropertyMaps.emptyPropertyMap());
          if (intendedDims.containsKey(Coords.TIME_POINT)) {
-            return new JsonPrimitive(intendedDims.getInteger(Coords.TIME_POINT, 0));
+            return new JsonPrimitive(intendedDims.getAsNumber(Coords.TIME_POINT, 0));
          }
          return null;
       }
@@ -490,7 +490,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(key(), 0));
+         return new JsonPrimitive(pmap.getAsNumber(key(), 0));
       }
    },
 
@@ -526,7 +526,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          if (pmap.containsKey(key())) {
-            return new JsonPrimitive(pmap.getLong(key(), 0));
+            return new JsonPrimitive(pmap.getAsNumber(key(), 0));
          }
          return null;
       }
@@ -708,7 +708,7 @@ public enum PropertyKey {
                   msp = LegacyStagePositionSchema.getInstance().fromGson(jo);
                }
 
-               int n = msp.getInteger(STAGE_POSITION__NUMAXES.key(), 0);
+               int n = msp.getAsNumber(STAGE_POSITION__NUMAXES.key(), 0).intValue();
                if (n < 1 || n > 3) {
                   throw new JsonParseException(
                         "Unexpected number of stage axes in stage position record");
@@ -807,7 +807,7 @@ public enum PropertyKey {
 
          PropertyMap.Builder b = PropertyMaps.builder();
          if (IJ_TYPE.extractFromGsonObject(jo, b)) {
-            int ijType = b.build().getInteger(IJ_TYPE.key(), -1);
+            int ijType = b.build().getAsNumber(IJ_TYPE.key(), -1).intValue();
             dest.putEnumAsString(key(), PixelType.valueOfImageJConstant(ijType));
             return true;
          }
@@ -833,7 +833,7 @@ public enum PropertyKey {
          PropertyMap intendedDims = pmap.getPropertyMap(INTENDED_DIMENSIONS.
                key(), PropertyMaps.emptyPropertyMap());
          if (intendedDims.containsKey(Coords.STAGE_POSITION)) {
-            return new JsonPrimitive(intendedDims.getInteger(Coords.STAGE_POSITION, 0));
+            return new JsonPrimitive(intendedDims.getAsNumber(Coords.STAGE_POSITION, 0));
          }
          return null;
       }
@@ -848,7 +848,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(Coords.STAGE_POSITION, 0));
+         return new JsonPrimitive(pmap.getAsNumber(Coords.STAGE_POSITION, 0));
       }
    },
 
@@ -1065,7 +1065,7 @@ public enum PropertyKey {
          PropertyMap intendedDims = pmap.getPropertyMap(INTENDED_DIMENSIONS.
                key(), PropertyMaps.emptyPropertyMap());
          if (intendedDims.containsKey(Coords.Z_SLICE)) {
-            return new JsonPrimitive(intendedDims.getInteger(Coords.Z_SLICE, 0));
+            return new JsonPrimitive(intendedDims.getAsNumber(Coords.Z_SLICE, 0));
          }
          return null;
       }
@@ -1098,7 +1098,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(Coords.Z_SLICE, 0));
+         return new JsonPrimitive(pmap.getAsNumber(Coords.Z_SLICE, 0));
       }
 
       @Override
@@ -1316,7 +1316,7 @@ public enum PropertyKey {
       @Override
       protected JsonElement convertToGson(PropertyMap pmap) {
          // Save zero even if missing
-         return new JsonPrimitive(pmap.getInteger(key(), 0));
+         return new JsonPrimitive(pmap.getAsNumber(key(), 0));
       }
    },
 

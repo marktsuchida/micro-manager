@@ -418,11 +418,11 @@ public final class MultipageTiffReader {
       // metadata. If it's not there, we use the values found in the summary
       // metadata.
 
-      int width = formatPmap.getInteger(PropertyKey.WIDTH.key(), 0);
-      int height = formatPmap.getInteger(PropertyKey.HEIGHT.key(), 0);
+      int width = formatPmap.getAsNumber(PropertyKey.WIDTH.key(), 0).intValue();
+      int height = formatPmap.getAsNumber(PropertyKey.HEIGHT.key(), 0).intValue();
       if (width < 1 || height < 1) {
-         width = imageFormatReadFromSummary_.getInteger(PropertyKey.WIDTH.key(), 0);
-         height = imageFormatReadFromSummary_.getInteger(PropertyKey.HEIGHT.key(), 0);
+         width = imageFormatReadFromSummary_.getAsNumber(PropertyKey.WIDTH.key(), 0).intValue();
+         height = imageFormatReadFromSummary_.getAsNumber(PropertyKey.HEIGHT.key(), 0).intValue();
          if (width < 1 || height < 1) {
             // TODO We should probably try the IFD before giving up
             throw new IOException("Cannot find image width and height");

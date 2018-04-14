@@ -28,7 +28,7 @@ public final class Coordinates {
    public static Coords fromPropertyMap(PropertyMap pmap) throws IOException {
       Coords.Builder b = builder();
       for (String axis : pmap.keySet()) {
-         b.index(axis, pmap.getInteger(axis, -1));
+         b.index(axis, pmap.getAsNumber(axis, -1).intValue());
       }
       return b.build();
    }
