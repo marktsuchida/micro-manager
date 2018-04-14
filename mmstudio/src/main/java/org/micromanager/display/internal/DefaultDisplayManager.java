@@ -28,6 +28,7 @@ import org.micromanager.display.internal.event.DataViewerDidBecomeInvisibleEvent
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -170,17 +171,17 @@ public final class DefaultDisplayManager implements DisplayManager, DataViewerDe
    public DisplaySettings.DisplaySettingsBuilder getDisplaySettingsBuilder() {
       return new DefaultDisplaySettings.LegacyBuilder();
    }
-   
-   @Override 
+
+   @Override
    public DisplaySettings.Builder displaySettingsBuilder() {
       return DefaultDisplaySettings.builder();
    }
-   
+
    @Override
    public ChannelDisplaySettings.Builder channelDisplaySettingsBuilder() {
       return DefaultChannelDisplaySettings.builder();
    }
-   
+
    @Override
    public ComponentDisplaySettings.Builder componentDisplaySettingsBuilder() {
       return DefaultComponentDisplaySettings.builder();
@@ -289,9 +290,10 @@ public final class DefaultDisplayManager implements DisplayManager, DataViewerDe
     * of DisplaySettings to a datastore location. I can not think of an easy, quick,
     * reliable way to store the displaysettings for multiple viewers.  Moreover,
     * this seems a bit esoteric and currently not worth the effort to implement.
-    * @param store Datastore to open displays for
-    * @return List with opened DisplayWindows
-    * @throws IOException 
+    *
+    * MT: This method has a buggy design and cannot be completely fixed. In any case,
+    * the implementation makes too many assumptions about the file format (which the
+    * display system should not know about). TODO Redesign API.
     */
    @Override
    public List<DisplayWindow> loadDisplays(Datastore store) throws IOException {
@@ -299,15 +301,17 @@ public final class DefaultDisplayManager implements DisplayManager, DataViewerDe
       ArrayList<DisplayWindow> result = new ArrayList<DisplayWindow>();
       if (path != null) {
          // try to restore display settings
-         File displaySettingsFile = new File(store.getSavePath() + File.separator + 
+         File displaySettingsFile = new File(store.getSavePath() + File.separator +
               "DisplaySettings.json");
-         DisplaySettings displaySettings = DefaultDisplaySettings.
+         DisplaySettings displaySettings;
+         try {
+            displaySettings = DefaultDisplaySettings.
                fromPropertyMap(PropertyMaps.loadJSON(displaySettingsFile));
-         if (displaySettings == null) {
+         }
+         catch (FileNotFoundException e) {
             displaySettings = this.getStandardDisplaySettings();
          }
-         // instead of using the createDisplay function, set the correct 
-         // displaySettings right away
+
          DisplayWindow tmp = new DisplayController.Builder(store).
             linkManager(linkManager_).shouldShow(true).initialDisplaySettings(displaySettings).build();
          addViewer(tmp);
@@ -514,7 +518,7 @@ public final class DefaultDisplayManager implements DisplayManager, DataViewerDe
             }
 
             if (displays.size() > 1) {
-               // Not last display, so OK to remove 
+               // Not last display, so OK to remove
                removeDisplay(window);
                return true;
             }
