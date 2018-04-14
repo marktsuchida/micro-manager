@@ -177,6 +177,14 @@ public interface Coords {
    }
 
    /**
+    * Check if this coords has no axes.
+    * @return true if this coords is empty, else false
+    */
+   default boolean isEmpty() {
+      return getAxes().isEmpty();
+   }
+
+   /**
     * Get the index for the given axis.
     *
     * @param axis coordinate axis such as {@code Coords.CHANNEL}

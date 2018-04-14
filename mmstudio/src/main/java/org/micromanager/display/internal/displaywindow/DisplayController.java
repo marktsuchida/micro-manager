@@ -927,7 +927,18 @@ public final class DisplayController extends DisplayWindowAPIAdapter
    @Override
    public List<Image> getDisplayedImages() throws IOException {
       // TODO Make sure this is accurate for composite and single-channel
-      return dataProvider_.getImagesMatching(getDisplayPosition());
+
+      // If the current position is the empty coords, we do not want to
+      // return all the images in the datastore!
+      Coords pos = getDisplayPosition();
+      if (pos.isEmpty()) {
+         // TODO This check is not correct for composite mode
+         if (dataProvider_.getNumImages() != 1) {
+            return Collections.emptyList();
+         }
+      }
+
+      return dataProvider_.getImagesMatching(pos);
    }
 
    @Override
@@ -954,7 +965,7 @@ public final class DisplayController extends DisplayWindowAPIAdapter
 
       return (uiController_ == null);
    }
-   
+
    public String getChannelName(int channelIndex) {
       if (dataProvider_ != null) {
          return dataProvider_.getSummaryMetadata().getChannelNameList().
@@ -1125,7 +1136,7 @@ public final class DisplayController extends DisplayWindowAPIAdapter
       }
    }
 
-   @Subscribe 
+   @Subscribe
    public void onNewDataProviderName(DataProviderHasNewNameEvent dpnne) {
       uiController_.updateTitle();
    }

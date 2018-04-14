@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -680,6 +681,11 @@ public final class StorageMultipageTiff implements Storage {
             if (imageCoords.matches(coords)) {
                result.add(coordsToPendingImage_.get(imageCoords));
             }
+         }
+      }
+      if (coords.isEmpty()) {
+         if (getNumImages() != 1) {
+            return Collections.emptyList();
          }
       }
       for (Coords imageCoords : coordsToReader_.keySet()) {
