@@ -86,9 +86,7 @@ public final class MultipageTiffReader {
    /**
     * This constructor is used for a file that is currently being written.
     */
-   MultipageTiffReader(StorageMultipageTiff masterStorage,
-                       SummaryMetadata summaryMD, PropertyMap summaryPmap,
-                       Image firstImage) {
+   MultipageTiffReader(StorageMultipageTiff masterStorage, SummaryMetadata summaryMD) {
       masterStorage_ = masterStorage;
       summaryMetadata_ = summaryMD;
       byteOrder_ = BYTE_ORDER;

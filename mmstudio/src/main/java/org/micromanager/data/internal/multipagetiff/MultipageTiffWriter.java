@@ -95,11 +95,7 @@ public final class MultipageTiffWriter {
    private final MultipageTiffReader reader_;
    private long blankPixelsOffset_ = -1;
 
-   MultipageTiffWriter(
-      final StorageMultipageTiff masterStorage,
-      final Image firstImage,
-      final String filename)
-         throws IOException {
+   MultipageTiffWriter(StorageMultipageTiff masterStorage, String filename) throws IOException {
       masterStorage_ = masterStorage;
       // TODO: casting to DefaultSummaryMetadata here.
       DefaultSummaryMetadata summary = (DefaultSummaryMetadata) masterStorage.getSummaryMetadata();
@@ -120,8 +116,7 @@ public final class MultipageTiffWriter {
             (DefaultImage) masterStorage_.getAnyImage());
       summaryPmap = augmentWithDisplaySettings(summaryPmap,
             DefaultDisplaySettings.builder().build());
-      reader_ = new MultipageTiffReader(masterStorage_, summary, summaryPmap,
-            firstImage);
+      reader_ = new MultipageTiffReader(masterStorage_, summary);
 
       //This is an overestimate of file size because file gets truncated at end
       long fileSize = Math.min(MAX_FILE_SIZE,

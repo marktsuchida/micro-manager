@@ -80,8 +80,7 @@ class FileSet {
       currentTiffFilename_ = baseFilename_ + ".ome.tif";
       currentTiffUUID_ = "urn:uuid:" + UUID.randomUUID().toString();
       //make first writer
-      tiffWriters_.add(new MultipageTiffWriter(masterStorage_,
-            firstImage, currentTiffFilename_));
+      tiffWriters_.add(new MultipageTiffWriter(masterStorage_, currentTiffFilename_));
 
       if (separateMetadataFile_) {
          startMetadataFile();
@@ -150,8 +149,7 @@ class FileSet {
          currentTiffFilename_ = baseFilename_ + "_" + tiffWriters_.size() + ".ome.tif";
          currentTiffUUID_ = "urn:uuid:" + UUID.randomUUID().toString();
          ifdCount_ = 0;
-         tiffWriters_.add(new MultipageTiffWriter(masterStorage_,
-               img, currentTiffFilename_));
+         tiffWriters_.add(new MultipageTiffWriter(masterStorage_, currentTiffFilename_));
 
          //Add new filename to image tags
          img = img.copyWithMetadata(img.getMetadata().
