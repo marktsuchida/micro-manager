@@ -47,7 +47,6 @@ import org.micromanager.data.Coords;
 import org.micromanager.data.Image;
 import org.micromanager.data.Metadata;
 import org.micromanager.data.SummaryMetadata;
-import org.micromanager.data.internal.CommentsHelper;
 import org.micromanager.data.internal.DefaultCoords;
 import org.micromanager.data.internal.DefaultImage;
 import org.micromanager.data.internal.DefaultMetadata;
@@ -116,7 +115,6 @@ public final class MultipageTiffWriter {
             (DefaultImage) masterStorage_.getAnyImage());
       summaryPmap = augmentWithDisplaySettings(summaryPmap,
             DefaultDisplaySettings.builder().build());
-      reader_ = new MultipageTiffReader(masterStorage_, summary);
 
       //This is an overestimate of file size because file gets truncated at end
       long fileSize = Math.min(MAX_FILE_SIZE,
@@ -144,9 +142,9 @@ public final class MultipageTiffWriter {
       fileChannel_ = raFile_.getChannel();
       writingExecutor_ = masterStorage_.getWritingExecutor();
       coordsToOffset_ = new HashMap<>();
-      reader_.setFileChannel(fileChannel_);
-      reader_.setIndexMap(coordsToOffset_);
       buffers_ = new LinkedList<>();
+
+      reader_ = MultipageTiffReader.createPairedWithWriter(summary, fileChannel_, coordsToOffset_);
 
       writeMMHeaderAndSummaryMD(summaryPmap);
    }
@@ -317,8 +315,8 @@ public final class MultipageTiffWriter {
     * @throws java.io.IOException
     */
    public void close(String omeXML) throws IOException {
-      String summaryComment = CommentsHelper.getSummaryComment(
-            masterStorage_.getDatastore());
+      // TODO Datastore should have pushed summary comments to us.
+      String summaryComment = "";
       writeImageJMetadata(numChannels_, summaryComment);
 
       writeImageDescription(omeXML, omeDescriptionTagPosition_);
@@ -853,14 +851,13 @@ public final class MultipageTiffWriter {
    private void writeComments() throws IOException {
       // Get the summary comments, then comments for each image.
       PropertyMap.Builder comments = PropertyMaps.builder();
-      String summaryComments = CommentsHelper.getSummaryComment(
-            masterStorage_.getDatastore());
+      // TODO Get summary comments
+      String summaryComments = "";
       comments.putString("Summary", summaryComments);
       for (Coords coords : masterStorage_.getUnorderedImageCoords()) {
-         String imageComments = CommentsHelper.getImageComment(
-               masterStorage_.getDatastore(), coords);
+         // TODO Get plane comments for coords
+         String imageComments = "";
          // HACK: produce a 1.4-style "coordinate string" to use as a key.
-         // See also MDUtils.getLabel(), though we can't use it directly.
          int channel = coords.getChannel() < 0 ? 0 : coords.getChannel();
          int z = coords.getZ() < 0 ? 0 : coords.getZ();
          int time = coords.getTime() < 0 ? 0 : coords.getTime();

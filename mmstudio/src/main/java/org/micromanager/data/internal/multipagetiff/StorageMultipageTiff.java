@@ -232,7 +232,7 @@ public final class StorageMultipageTiff implements Storage {
       MultipageTiffReader reader = null;
       try {
          try {
-            reader = new MultipageTiffReader(this, f);
+            reader = MultipageTiffReader.openExistingFile(f);
          }
          catch (InvalidIndexMapException e) {
             // Prompt to repair it.
@@ -244,13 +244,10 @@ public final class StorageMultipageTiff implements Storage {
             if (choice != JOptionPane.YES_OPTION) {
                return null;
             }
-            // Attempt to repair it. This constructor automatically invokes
-            // the fixIndexMap method (and is the only constructor that
-            // opens files in read/write mode).
-            reader = new MultipageTiffReader(f);
-            reader.close();
-            // Open the file normally.
-            reader = new MultipageTiffReader(this, f);
+            MultipageTiffReader.repairIndexMap(f);
+
+            // Re-open the file normally.
+            reader = MultipageTiffReader.openExistingFile(f);
          }
          Set<Coords> readerCoords = reader.getIndexKeys();
          for (Coords coords : readerCoords) {

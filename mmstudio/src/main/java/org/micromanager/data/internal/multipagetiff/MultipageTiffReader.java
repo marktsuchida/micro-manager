@@ -42,11 +42,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.micromanager.PropertyMap;
 import org.micromanager.data.Coords;
-import org.micromanager.data.Datastore;
 import org.micromanager.data.Image;
 import org.micromanager.data.Metadata;
 import org.micromanager.data.SummaryMetadata;
-import org.micromanager.data.internal.CommentsHelper;
 import org.micromanager.data.internal.DefaultCoords;
 import org.micromanager.data.internal.DefaultImage;
 import org.micromanager.data.internal.DefaultMetadata;
@@ -59,7 +57,6 @@ import org.micromanager.data.internal.schema.LegacyMetadataSchema;
 import org.micromanager.data.internal.schema.LegacySummaryMetadataSchema;
 import org.micromanager.display.DisplaySettings;
 import org.micromanager.display.internal.DefaultDisplaySettings;
-import org.micromanager.internal.utils.MDUtils;
 import org.micromanager.internal.utils.ProgressBar;
 import org.micromanager.internal.utils.ReportingUtils;
 
@@ -77,44 +74,46 @@ public final class MultipageTiffReader {
    private RandomAccessFile raFile_;
    private FileChannel fileChannel_;
 
-   private StorageMultipageTiff masterStorage_;
    private SummaryMetadata summaryMetadata_;
    private PropertyMap imageFormatReadFromSummary_;
 
    private HashMap<Coords, Long> coordsToOffset_;
 
-   /**
-    * This constructor is used for a file that is currently being written.
-    */
-   MultipageTiffReader(StorageMultipageTiff masterStorage, SummaryMetadata summaryMD) {
-      masterStorage_ = masterStorage;
-      summaryMetadata_ = summaryMD;
-      byteOrder_ = BYTE_ORDER;
+   static MultipageTiffReader createPairedWithWriter(SummaryMetadata summaryMD,
+                                                     FileChannel fc, HashMap<Coords, Long> indexMap) {
+      return new MultipageTiffReader(summaryMD, fc, indexMap);
    }
 
-   void setIndexMap(HashMap<Coords, Long> indexMap) {
+   private MultipageTiffReader(SummaryMetadata summaryMD, FileChannel fc, HashMap<Coords, Long> indexMap) {
+      summaryMetadata_ = summaryMD;
+      byteOrder_ = BYTE_ORDER;
+      fileChannel_ = fc;
       coordsToOffset_ = indexMap;
    }
 
-   void setFileChannel(FileChannel fc) {
-      fileChannel_ = fc;
+   static MultipageTiffReader openExistingFile(File file) throws IOException {
+      return new MultipageTiffReader(file, false);
    }
 
-   /**
-    * This constructor is used for opening datasets that have already been saved
-    */
-   MultipageTiffReader(StorageMultipageTiff masterStorage, File file)
-         throws IOException {
-      masterStorage_ = masterStorage;
+   static void repairIndexMap(File file) throws IOException {
+      new MultipageTiffReader(file, true).close();
+   }
+
+   private MultipageTiffReader(File file, boolean repair) throws IOException {
       file_ = file;
       try {
-         createFileChannel(false);
+         createFileChannel(repair);
       } catch (Exception ex) {
          ReportingUtils.showError(ex, "Cannot open file: " +  file_.getName());
          throw ex instanceof IOException ? (IOException) ex : new IOException(ex);
       }
-      readHeader(); // Determine byte order
+      long firstIFD = readHeader();
       readSummaryMD();
+
+      if (repair) {
+         fixIndexMap(firstIFD, file.getName());
+         return;
+      }
 
       try {
          readIndexMap();
@@ -123,29 +122,6 @@ public final class MultipageTiffReader {
          // Unlike other IOErrors, this is a potentially recoverable error.
          throw new InvalidIndexMapException(e);
       }
-
-      readComments();
-   }
-
-   /**
-    * HACK: this version is only used when fixing index maps.
-    * Ideally said fixing would be done without needing to create a new
-    * MultipageTiffReader object, but that would require disentangling the
-    * file reading code that does some setup before fixIndexMap() is called.
-    */
-   MultipageTiffReader(File file) throws IOException {
-      file_ = file;
-      try {
-         createFileChannel(true);
-      }
-      catch (Exception ex) {
-         ReportingUtils.showError(ex, "Cannot open file: " +  file_.getName());
-         throw ex instanceof IOException ? (IOException) ex : new IOException(ex);
-      }
-      long firstIFD = readHeader();
-      readSummaryMD();
-
-      fixIndexMap(firstIFD, file.getName());
    }
 
    public static boolean isMMMultipageTiff(String directory) throws IOException {
@@ -253,17 +229,8 @@ public final class MultipageTiffReader {
     * JSONObject containing two potential types of comment: a summary comment
     * and per-image comments. They're stored under the "Summary" key for the
     * summary comment, and under coordinate strings for the per-image comments.
-    * In the event that we find comments here *and* there is no existing
-    * Annotation storing comment data for this Datastore, we should convert
-    * any comments we find here into an Annotation.
     */
-   private void readComments() throws IOException {
-      Datastore store = masterStorage_.getDatastore();
-      if (CommentsHelper.hasAnnotation(store)) {
-         // Already have a comments annotation set up; bail.
-         return;
-      }
-      boolean didCreate = false;
+   private void readComments() {
       ByteBuffer buffer = null;
       try {
          long offset = readOffsetHeaderAndOffset(COMMENTS_OFFSET_HEADER, 24);
@@ -274,31 +241,7 @@ public final class MultipageTiffReader {
          }
          buffer = readIntoBuffer(offset + 8, header.getInt(4));
          JSONObject comments = new JSONObject(getString(buffer));
-         Coords.CoordsBuilder builder = new DefaultCoords.Builder();
-         for (String key : MDUtils.getKeys(comments)) {
-            if (comments.getString(key).equals("")) {
-               continue;
-            }
-            if (!didCreate) {
-               // Have at least one comment, so create the annotation.
-               CommentsHelper.createAnnotation(store);
-               didCreate = true;
-            }
-            if (key.equals("Summary")) {
-               CommentsHelper.setSummaryComment(store, comments.getString(key));
-               continue;
-            }
-            // Generate a Coords object from the key string. The string is
-            // formatted as channel_z_time_position.
-            int[] indices = MDUtils.getIndices(key);
-            builder.channel(indices[0]).z(indices[1]).time(indices[2])
-               .stagePosition(indices[3]);
-            CommentsHelper.setImageComment(store, builder.build(),
-                  comments.getString(key));
-         }
-         if (didCreate) {
-            CommentsHelper.saveComments(store);
-         }
+         // TODO Return or store the comments
       }
       catch (JSONException e) {
          ReportingUtils.logError(e, "Unable to generate JSON from buffer " + getString(buffer));
