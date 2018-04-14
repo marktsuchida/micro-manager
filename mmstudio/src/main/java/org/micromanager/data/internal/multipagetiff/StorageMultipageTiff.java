@@ -28,14 +28,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -68,17 +65,17 @@ public final class StorageMultipageTiff implements Storage {
            "generate a metadata file when saving datasets as multipage TIFF files";
    private static final String SHOULD_USE_SEPARATE_FILES_FOR_POSITIONS =
            "generate a separate multipage TIFF file for each stage position";
-   private static final HashSet<String> ALLOWED_AXES = new HashSet<String>(
-         Arrays.asList(Coords.CHANNEL, Coords.T, Coords.Z,
-            Coords.STAGE_POSITION));
+   private static final HashSet<String> ALLOWED_AXES = new HashSet<>(
+      Arrays.asList(Coords.CHANNEL, Coords.T, Coords.Z,
+         Coords.STAGE_POSITION));
 
-   private DefaultDatastore store_;
+   private final DefaultDatastore store_;
    private DefaultSummaryMetadata summaryMetadata_ = (new DefaultSummaryMetadata.Builder()).build();
    private String summaryMetadataString_ = LegacySummaryMetadataSchema.getInstance().
       toJSON(summaryMetadata_.toPropertyMap());
    private boolean amInWriteMode_;
    private int lastFrameOpenedDataSet_ = -1;
-   private String directory_;
+   private final String directory_;
    final private boolean separateMetadataFile_;
    private boolean splitByXYPosition_ = true;
    private volatile boolean finished_ = false;
@@ -93,7 +90,7 @@ public final class StorageMultipageTiff implements Storage {
    // complete data rather than risking a call to
    // MultipageTiffReader.readImage().
    private final ConcurrentHashMap<Coords, Image> coordsToPendingImage_ =
-      new ConcurrentHashMap<Coords, Image>();
+      new ConcurrentHashMap<>();
 
    //map of position indices to objects associated with each
    private HashMap<Integer, FileSet> positionToFileSet_;
@@ -127,10 +124,10 @@ public final class StorageMultipageTiff implements Storage {
       directory_ = dir;
       store_.setSavePath(directory_);
       store_.setName(new File(directory_).getName());
-      coordsToReader_ = new HashMap<Coords, MultipageTiffReader>();
+      coordsToReader_ = new HashMap<>();
 
       if (amInWriteMode_) {
-         positionToFileSet_ = new HashMap<Integer, FileSet>();
+         positionToFileSet_ = new HashMap<>();
          // Create the directory now, even though we have nothing to write to
          // it, so we can detect e.g. permissions errors that would cause
          // problems later.
@@ -159,7 +156,7 @@ public final class StorageMultipageTiff implements Storage {
       }
    }
 
-   public ThreadPoolExecutor getWritingExecutor() {
+   ThreadPoolExecutor getWritingExecutor() {
       return writingExecutor_;
    }
 
@@ -284,11 +281,9 @@ public final class StorageMultipageTiff implements Storage {
          firstImage_ = image;
       }
       try {
-         writeImage(image, false);
+         writeImage(image);
       }
-      catch (MMException e) {
-         ReportingUtils.showError(e, "Failed to write image at " + image.getCoords());
-      } catch (IOException e) {
+      catch (MMException | IOException e) {
          ReportingUtils.showError(e, "Failed to write image at " + image.getCoords());
       }
    }
@@ -296,26 +291,6 @@ public final class StorageMultipageTiff implements Storage {
    @Override
    public void freeze() {
       finished();
-   }
-
-   private void writeImage(DefaultImage image, boolean waitForWritingToFinish) throws MMException, IOException {
-      writeImage(image);
-      if (waitForWritingToFinish) {
-         Future f = writingExecutor_.submit(new Runnable() {
-            @Override
-            public void run() {
-            }
-         });
-         try {
-            f.get();
-         }
-         catch (InterruptedException shouldntHappen) {
-         }
-         catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
-         }
-      }
    }
 
    /**
@@ -339,21 +314,18 @@ public final class StorageMultipageTiff implements Storage {
 
       startWritingTask(image);
 
-      writingExecutor_.submit(new Runnable() {
-         @Override
-         public void run() {
-            synchronized(coordsToPendingImage_) {
-               coordsToPendingImage_.remove(coords);
-            }
+      writingExecutor_.submit(() -> {
+         synchronized(coordsToPendingImage_) {
+            coordsToPendingImage_.remove(coords);
          }
       });
-   };
+   }
 
    /**
     * This method handles starting the process of writing images (which means
     * that it ultimately submits a task to writingExecutor_).
     */
-   private void startWritingTask(DefaultImage image) throws MMException, IOException {
+   private void startWritingTask(DefaultImage image) throws IOException {
       // Update maxIndices_
       if (maxIndices_ == null) {
          maxIndices_ = image.getCoords().copy().build();
@@ -371,7 +343,7 @@ public final class StorageMultipageTiff implements Storage {
       if (writingExecutor_ == null) {
          writingExecutor_ = new ThreadPoolExecutor(1, 1, 0,
                TimeUnit.NANOSECONDS,
-               new LinkedBlockingQueue<java.lang.Runnable>());
+            new LinkedBlockingQueue<>());
       }
       int fileSetIndex = 0;
       if (splitByXYPosition_) {
@@ -403,10 +375,6 @@ public final class StorageMultipageTiff implements Storage {
 
       int frame = image.getCoords().getTimePoint();
       lastFrameOpenedDataSet_ = Math.max(frame, lastFrameOpenedDataSet_);
-   }
-
-   public Set<Coords> imageKeys() {
-      return coordsToReader_.keySet();
    }
 
    /**
@@ -542,7 +510,7 @@ public final class StorageMultipageTiff implements Storage {
 
       // TODO What does the following have to do with summary metadata?
       Map<Coords, MultipageTiffReader> oldImageMap = coordsToReader_;
-      coordsToReader_ = new HashMap<Coords, MultipageTiffReader>();
+      coordsToReader_ = new HashMap<>();
       if (showProgress && !GraphicsEnvironment.isHeadless()) {
          ProgressBar progressBar = new ProgressBar("Building image location map", 0, oldImageMap.keySet().size());
          progressBar.setProgress(0);
@@ -564,19 +532,15 @@ public final class StorageMultipageTiff implements Storage {
       return summaryMetadata_;
    }
 
-   public String getSummaryMetadataString() {
+   String getSummaryMetadataString() {
       return summaryMetadataString_;
    }
 
-   public boolean getSplitByStagePosition() {
-      return splitByXYPosition_;
-   }
-
-   public String getDiskLocation() {
+   String getDiskLocation() {
       return directory_;
    }
 
-   public int lastAcquiredFrame() {
+   int lastAcquiredFrame() {
       if (amInWriteMode_) {
          return lastFrame_;
       } else {
@@ -584,31 +548,12 @@ public final class StorageMultipageTiff implements Storage {
       }
    }
 
-   public void updateLastFrame(int frame) {
+   void updateLastFrame(int frame) {
       lastFrame_ = Math.max(frame, lastFrame_);
    }
 
-   public void updateLastPosition(int pos) {
+   void updateLastPosition(int pos) {
       lastAcquiredPosition_ = Math.max(pos, lastAcquiredPosition_);
-   }
-
-   public long getDataSetSize() {
-      File dir = new File (directory_);
-      LinkedList<File> list = new LinkedList<File>();
-      for (File f : dir.listFiles()) {
-         if (f.isDirectory()) {
-            for (File fi : f.listFiles()) {
-               list.add(f);
-            }
-         } else {
-            list.add(f);
-         }
-      }
-      long size = 0;
-      for (File f : list) {
-         size += f.length();
-      }
-      return size;
    }
 
    @Override
@@ -621,7 +566,7 @@ public final class StorageMultipageTiff implements Storage {
       // TODO: this method is pretty poorly-implemented at current.
       if (maxIndices_ == null) {
          // Calculate max indices by examining all registered Readers.
-         HashMap<String, Integer> maxIndices = new HashMap<String, Integer>();
+         HashMap<String, Integer> maxIndices = new HashMap<>();
          for (Coords coords : coordsToReader_.keySet()) {
             for (String axis : coords.getAxes()) {
                if (!maxIndices.containsKey(axis) ||
@@ -658,7 +603,7 @@ public final class StorageMultipageTiff implements Storage {
       return getMaxIndex(axis) + 1;
    }
 
-   public Integer getIntendedSize(String axis) {
+   Integer getIntendedSize(String axis) {
       if (summaryMetadata_.getIntendedDimensions() == null) {
          // Return the current size instead.
          return getAxisLength(axis);
@@ -675,7 +620,7 @@ public final class StorageMultipageTiff implements Storage {
 
    @Override
    public List<Image> getImagesMatching(Coords coords) {
-      HashSet<Image> result = new HashSet<Image>();
+      HashSet<Image> result = new HashSet<>();
       synchronized(coordsToPendingImage_) {
          for (Coords imageCoords : coordsToPendingImage_.keySet()) {
             if (imageCoords.matches(coords)) {
@@ -698,7 +643,7 @@ public final class StorageMultipageTiff implements Storage {
             }
          }
       }
-      return new ArrayList<Image>(result);
+      return new ArrayList<>(result);
    }
 
    @Override

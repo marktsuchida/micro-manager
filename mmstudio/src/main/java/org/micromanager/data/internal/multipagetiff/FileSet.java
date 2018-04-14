@@ -52,23 +52,24 @@ class FileSet {
    private final OMEMetadata omeMetadata_;
    private final String baseFilename_;
    private String currentTiffFilename_;
-   private String currentTiffUUID_;;
-   private String metadataFileFullPath_;
+   private String currentTiffUUID_;
    private boolean finished_ = false;
-   private boolean separateMetadataFile_ = false;
-   private boolean splitByXYPosition_ = false;
+   private boolean separateMetadataFile_;
+   private boolean splitByXYPosition_;
    private boolean expectedImageOrder_ = true;
    private int ifdCount_ = 0;
    private final StorageMultipageTiff masterStorage_;
-   int nextExpectedChannel_ = 0, nextExpectedSlice_ = 0, nextExpectedFrame_ = 0;
-   int currentFrame_ = 0;
+   private int nextExpectedChannel_ = 0;
+   private int nextExpectedSlice_ = 0;
+   private int nextExpectedFrame_ = 0;
+   private int currentFrame_ = 0;
 
 
-   public FileSet(Image firstImage, StorageMultipageTiff masterStorage,
-         OMEMetadata omeMetadata,
-         boolean splitByXYPosition, boolean separateMetadataFile)
+   FileSet(Image firstImage, StorageMultipageTiff masterStorage,
+           OMEMetadata omeMetadata,
+           boolean splitByXYPosition, boolean separateMetadataFile)
       throws IOException {
-      tiffWriters_ = new LinkedList<MultipageTiffWriter>();
+      tiffWriters_ = new LinkedList<>();
       masterStorage_ = masterStorage;
       omeMetadata_ = omeMetadata;
       splitByXYPosition_ = splitByXYPosition;
@@ -87,15 +88,15 @@ class FileSet {
       }
    }
 
-   public String getCurrentUUID() {
+   String getCurrentUUID() {
       return currentTiffUUID_;
    }
 
-   public String getCurrentFilename() {
+   String getCurrentFilename() {
       return currentTiffFilename_;
    }
 
-   public boolean hasSpaceForFullOMEXML(int mdLength) {
+   boolean hasSpaceForFullOMEXML(int mdLength) {
       return tiffWriters_.getLast().hasSpaceForFullOMEMetadata(mdLength);
    }
 
@@ -117,7 +118,7 @@ class FileSet {
       finished_ = true;
    }
 
-   public void closeFileDescriptors() {
+   void closeFileDescriptors() {
       for (MultipageTiffWriter writer : tiffWriters_) {
          try {
             writer.getReader().close();
@@ -128,15 +129,15 @@ class FileSet {
       }
    }
 
-   public MultipageTiffReader getCurrentReader() {
+   MultipageTiffReader getCurrentReader() {
       return tiffWriters_.getLast().getReader();
    }
 
-   public int getCurrentFrame() {
+   int getCurrentFrame() {
       return currentFrame_;
    }
 
-   public void writeImage(final Image imgIn) throws IOException {
+   void writeImage(final Image imgIn) throws IOException {
       //Add filename to image tags - needed by hasSpaceToWrite function
       Image img = imgIn.copyWithMetadata(imgIn.getMetadata().
             copyBuilderPreservingUUID().fileName(currentTiffFilename_).
@@ -210,13 +211,13 @@ class FileSet {
    }
 
    private void startMetadataFile() {
-      metadataFileFullPath_ = masterStorage_.getDiskLocation() + "/" +
-            baseFilename_ + "_metadata.txt";
+      String metadataFileFullPath = masterStorage_.getDiskLocation() + "/" +
+         baseFilename_ + "_metadata.txt";
       PropertyMap summaryPmap = ((DefaultSummaryMetadata) masterStorage_.
             getSummaryMetadata()).toPropertyMap();
       String summaryJSON = LegacySummaryMetadataSchema.getInstance().toJSON(summaryPmap);
       try {
-         mdWriter_ = new FileWriter(metadataFileFullPath_);
+         mdWriter_ = new FileWriter(metadataFileFullPath);
          mdWriter_.write("{" + "\n");
          mdWriter_.write("\"Summary\": ");
          mdWriter_.write(summaryJSON);
@@ -266,7 +267,7 @@ class FileSet {
     * as appropriate.  This method only works if xy positions are split across
     * separate files
     */
-   public void finishAbortedAcqIfNeeded() {
+   void finishAbortedAcqIfNeeded() {
       if (expectedImageOrder_ && splitByXYPosition_ && !masterStorage_.timeFirst()) {
          try {
             //One position may be on the next frame compared to others. Complete each position
@@ -287,7 +288,7 @@ class FileSet {
       int numSlices = masterStorage_.getIntendedSize(Coords.Z);
       int numChannels = masterStorage_.getIntendedSize(Coords.CHANNEL);
       if (numFrames > frame + 1 ) {
-         HashSet<Coords> writtenImages = new HashSet<Coords>();
+         HashSet<Coords> writtenImages = new HashSet<>();
          for (MultipageTiffWriter w : tiffWriters_) {
             writtenImages.addAll(w.getIndexMap().keySet());
             w.setAbortedNumFrames(frame + 1);
@@ -298,7 +299,7 @@ class FileSet {
             positionIndex = iterator.next().getStagePosition();
          }
          omeMetadata_.setNumFrames(positionIndex, frame + 1);
-         TreeSet<Coords> lastFrameCoords = new TreeSet<Coords>();
+         TreeSet<Coords> lastFrameCoords = new TreeSet<>();
          DefaultCoords.Builder builder = new DefaultCoords.Builder();
          builder.t(frame);
          builder.stagePosition(positionIndex);
@@ -310,20 +311,16 @@ class FileSet {
             }
          }
          lastFrameCoords.removeAll(writtenImages);
-         try {
-            for (Coords coords : lastFrameCoords) {
-               tiffWriters_.getLast().writeBlankImage();
-               Metadata dummyMD = new DefaultMetadata.Builder().build();
-               omeMetadata_.addImageTagsToOME(coords, dummyMD, ifdCount_,
-                     baseFilename_, currentTiffFilename_, currentTiffUUID_);
-            }
-         } catch (IOException ex) {
-            ReportingUtils.logError("problem writing dummy image");
+         for (Coords coords : lastFrameCoords) {
+            tiffWriters_.getLast().writeBlankImage();
+            Metadata dummyMD = new DefaultMetadata.Builder().build();
+            omeMetadata_.addImageTagsToOME(coords, dummyMD, ifdCount_,
+               baseFilename_, currentTiffFilename_, currentTiffUUID_);
          }
       }
    }
 
-   void checkForExpectedImageOrder(Coords coords) {
+   private void checkForExpectedImageOrder(Coords coords) {
       //Determine next expected indices
       int channel = coords.getChannel();
       int frame = coords.getTimePoint();

@@ -53,7 +53,10 @@ import org.micromanager.data.internal.DefaultMetadata;
 import org.micromanager.data.internal.DefaultSummaryMetadata;
 import org.micromanager.data.internal.PixelType;
 import org.micromanager.data.internal.PropertyKey;
-import org.micromanager.data.internal.schema.*;
+import org.micromanager.data.internal.schema.LegacyCoordsSchema;
+import org.micromanager.data.internal.schema.LegacyImageFormatSchema;
+import org.micromanager.data.internal.schema.LegacyMetadataSchema;
+import org.micromanager.data.internal.schema.LegacySummaryMetadataSchema;
 import org.micromanager.display.DisplaySettings;
 import org.micromanager.display.internal.DefaultDisplaySettings;
 import org.micromanager.internal.utils.MDUtils;
@@ -88,27 +91,27 @@ public final class MultipageTiffReader {
    /**
     * This constructor is used for a file that is currently being written.
     */
-   public MultipageTiffReader(StorageMultipageTiff masterStorage,
-         SummaryMetadata summaryMD, PropertyMap summaryPmap,
-         Image firstImage) {
+   MultipageTiffReader(StorageMultipageTiff masterStorage,
+                       SummaryMetadata summaryMD, PropertyMap summaryPmap,
+                       Image firstImage) {
       masterStorage_ = masterStorage;
       summaryMetadata_ = summaryMD;
       byteOrder_ = MultipageTiffWriter.BYTE_ORDER;
    }
 
-   public void setIndexMap(HashMap<Coords, Long> indexMap) {
+   void setIndexMap(HashMap<Coords, Long> indexMap) {
       coordsToOffset_ = indexMap;
    }
 
-   public void setFileChannel(FileChannel fc) {
+   void setFileChannel(FileChannel fc) {
       fileChannel_ = fc;
    }
 
    /**
     * This constructor is used for opening datasets that have already been saved
     */
-   public MultipageTiffReader(StorageMultipageTiff masterStorage, File file)
-         throws IOException, InvalidIndexMapException {
+   MultipageTiffReader(StorageMultipageTiff masterStorage, File file)
+         throws IOException {
       masterStorage_ = masterStorage;
       file_ = file;
       try {
@@ -137,7 +140,7 @@ public final class MultipageTiffReader {
     * MultipageTiffReader object, but that would require disentangling the
     * file reading code that does some setup before fixIndexMap() is called.
     */
-   public MultipageTiffReader(File file) throws IOException {
+   MultipageTiffReader(File file) throws IOException {
       file_ = file;
       try {
          createFileChannel(true);
@@ -199,17 +202,14 @@ public final class MultipageTiffReader {
       int summaryMDHeader = tiffHeader.getInt(32);
       channel.close();
       ra.close();
-      if (summaryMDHeader == MultipageTiffWriter.SUMMARY_MD_HEADER) {
-         return true;
-      }
-      return false;
+      return summaryMDHeader == MultipageTiffWriter.SUMMARY_MD_HEADER;
    }
 
    public SummaryMetadata getSummaryMetadata() {
       return summaryMetadata_;
    }
 
-   public DefaultImage readImage(Coords coords) throws IOException {
+   DefaultImage readImage(Coords coords) throws IOException {
       if (!coordsToOffset_.containsKey(coords)) {
          // Coordinates not in our map; maybe the writer hasn't finished
          // writing it?
@@ -225,7 +225,7 @@ public final class MultipageTiffReader {
       return (DefaultImage) readImage(data);
    }
 
-   public Set<Coords> getIndexKeys() {
+   Set<Coords> getIndexKeys() {
       if (coordsToOffset_ == null)
          return null;
       return coordsToOffset_.keySet();
@@ -330,14 +330,14 @@ public final class MultipageTiffReader {
       return unsignInt(buffer1.getInt(4));
    }
 
-   private void readIndexMap() throws IOException, InvalidIndexMapException {
+   private void readIndexMap() throws IOException {
       long offset = readOffsetHeaderAndOffset(MultipageTiffWriter.INDEX_MAP_OFFSET_HEADER, 8);
       ByteBuffer header = readIntoBuffer(offset, 8);
       if (header.getInt(0) != MultipageTiffWriter.INDEX_MAP_HEADER) {
          throw new InvalidIndexMapException();
       }
       int numMappings = header.getInt(4);
-      coordsToOffset_ = new HashMap<Coords, Long>();
+      coordsToOffset_ = new HashMap<>();
       ByteBuffer mapBuffer = readIntoBuffer(offset+8, 20*numMappings);
       for (int i = 0; i < numMappings; i++) {
          int channel = mapBuffer.getInt(i*20);
@@ -477,7 +477,7 @@ public final class MultipageTiffReader {
       }
    }
 
-   private IFDEntry readDirectoryEntry(int offset, ByteBuffer buffer) throws IOException {
+   private IFDEntry readDirectoryEntry(int offset, ByteBuffer buffer) {
       char tag =  buffer.getChar(offset);
       char type = buffer.getChar(offset + 2);
       long count = unsignInt( buffer.getInt(offset + 4) );
@@ -519,7 +519,7 @@ public final class MultipageTiffReader {
       }
    }
 
-   private void createFileChannel(boolean isReadWrite) throws FileNotFoundException, IOException {
+   private void createFileChannel(boolean isReadWrite) throws IOException {
       raFile_ = new RandomAccessFile(file_, isReadWrite ? "rw" : "r");
       fileChannel_ = raFile_.getChannel();
    }
@@ -549,7 +549,7 @@ public final class MultipageTiffReader {
    // the ImageDescription tag location
    private void fixIndexMap(long firstIFD, String fileName) throws IOException {
       long filePosition = firstIFD;
-      coordsToOffset_ = new HashMap<Coords, Long>();
+      coordsToOffset_ = new HashMap<>();
       long progBarMax = (fileChannel_.size() / 2L);
       final ProgressBar progressBar = new ProgressBar("Fixing " + fileName, 0,
               progBarMax >= Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) progBarMax);
@@ -575,12 +575,7 @@ public final class MultipageTiffReader {
             coordsToOffset_.put(image.getCoords(), filePosition);
 
             final int progress = (int) (filePosition/2L);
-            SwingUtilities.invokeLater(new Runnable() {
-               @Override
-               public void run() {
-                  progressBar.setProgress(progress);
-               }
-            });
+            SwingUtilities.invokeLater(() -> progressBar.setProgress(progress));
 
             if (data.nextIFD <= filePosition || data.nextIFDOffsetLocation <= nextIFDOffsetLocation ) {
                break; //so no recoverable data is ever lost
@@ -660,14 +655,14 @@ public final class MultipageTiffReader {
    }
 
    private class IFDData {
-      public long pixelOffset;
-      public long bytesPerImage;
-      public long mdOffset;
-      public long mdLength;
-      public long nextIFD;
-      public long nextIFDOffsetLocation;
+      long pixelOffset;
+      long bytesPerImage;
+      long mdOffset;
+      long mdLength;
+      long nextIFD;
+      long nextIFDOffsetLocation;
 
-      public IFDData() {}
+      IFDData() {}
 
       @Override
       public String toString() {
@@ -678,10 +673,12 @@ public final class MultipageTiffReader {
    }
 
    private class IFDEntry {
-      public char tag, type;
-      public long count, value;
+      final char tag;
+      final char type;
+      final long count;
+      final long value;
 
-      public IFDEntry(char tg, char typ, long cnt, long val) {
+      IFDEntry(char tg, char typ, long cnt, long val) {
          tag = tg;
          type = typ;
          count = cnt;
