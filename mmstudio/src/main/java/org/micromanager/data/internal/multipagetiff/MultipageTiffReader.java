@@ -23,6 +23,7 @@ package org.micromanager.data.internal.multipagetiff;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import java.io.File;
@@ -34,13 +35,14 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.SwingUtilities;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.micromanager.PropertyMap;
+import org.micromanager.data.Coordinates;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Image;
 import org.micromanager.data.Metadata;
@@ -225,30 +227,106 @@ public final class MultipageTiffReader {
    }
 
    /**
-    * Read the comments block from the end of the file. This should be a
-    * JSONObject containing two potential types of comment: a summary comment
-    * and per-image comments. They're stored under the "Summary" key for the
-    * summary comment, and under coordinate strings for the per-image comments.
+    * Read the summary comment recorded in the file.
+    *
+    * Because we treat the TIFF file as being immutable, this is expected to be
+    * the version of the summary comment when the dataset was frozen. (Later
+    * modified comments may be stored via an external mechanism, which is not
+    * the concern of this reader.)
+    *
+    * @return the summary comment text, or empty string if none found
+    * @throws IOException if there was an error reading the file, or if the
+    * file appears to contain comments but they are not in the correct format.
     */
-   private void readComments() {
-      ByteBuffer buffer = null;
+   public String readSummaryComments() throws IOException {
       try {
-         long offset = readOffsetHeaderAndOffset(COMMENTS_OFFSET_HEADER, 24);
-         ByteBuffer header = readIntoBuffer(offset, 8);
-         if (header.getInt(0) != COMMENTS_HEADER) {
-            ReportingUtils.logError("Can't find image comments in file: " + file_.getName());
-            return;
+         JsonObject jo = readCommentsJSON();
+         if (jo == null) {
+            return "";
          }
-         buffer = readIntoBuffer(offset + 8, header.getInt(4));
-         JSONObject comments = new JSONObject(getString(buffer));
-         // TODO Return or store the comments
+         return jo.has("Summary") ? jo.get("Summary").getAsString() : "";
       }
-      catch (JSONException e) {
-         ReportingUtils.logError(e, "Unable to generate JSON from buffer " + getString(buffer));
+      catch (RuntimeException e) {
+         throw new IOException("Summary comment appears to be corrupted", e);
       }
-      catch (IOException e) {
-         ReportingUtils.logError(e, "Error reading comments block");
+   }
+
+   /**
+    * Read the plane comments recorded in the file.
+    *
+    * Because we treat the TIFF file as being immutable, this is expected to be
+    * the version of the comments when the dataset was frozen. (Later modified
+    * comments may be stored via an external mechanism, which is not the
+    * concern of this reader.)
+    *
+    * @return a map from plane coordinates to comment text
+    * @throws IOException if there was an error reading the file, or if the
+    * file appears to contain comments but they are not in the correct format.
+    */
+   public Map<Coords, String> readPlaneComments() throws IOException {
+      try {
+         JsonObject jo = readCommentsJSON();
+         if (jo == null) {
+            return Collections.emptyMap();
+         }
+         Map<Coords, String> planeComments = new HashMap<>();
+         for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            String key = e.getKey();
+            String comment;
+            comment = e.getValue().getAsString();
+            if (comment.isEmpty()) {
+               continue;
+            }
+            if (key.equals("Summary")) {
+               continue;
+            }
+            Coords c = makeCoordsFromCommentKey(key);
+            planeComments.put(c, comment);
+         }
+         return planeComments;
       }
+      catch (RuntimeException e) {
+         throw new IOException("Plane comments appear to be corrupted", e);
+      }
+   }
+
+   private JsonObject readCommentsJSON() throws IOException {
+      long commentsOffset;
+      try {
+         commentsOffset = readOffsetHeaderAndOffset(COMMENTS_OFFSET_HEADER, 24);
+      } catch (IOException e) {
+         // TODO This could either be a genuine I/O error, or an unexpected
+         // magic at offset 24. We should rethrow the former but return an
+         // empty map for the latter.
+         return null;
+      }
+      if (commentsOffset == 0) {
+         return null;
+      }
+      ByteBuffer header = readIntoBuffer(commentsOffset, 8);
+      if (header.getInt(0) != COMMENTS_HEADER) {
+         throw new IOException(String.format("Comments saved in file %s may be corrupted", file_.toString()));
+      }
+      ByteBuffer commentBuffer = readIntoBuffer(commentsOffset + 8, header.getInt(4));
+      String json = getString(commentBuffer);
+
+      JsonParser parser = new JsonParser();
+      JsonElement je = parser.parse(json);
+      JsonObject jo = je.getAsJsonObject();
+      return jo;
+   }
+
+   private Coords makeCoordsFromCommentKey(String key) {
+      String[] indices = key.split("_");
+      if (indices.length != 4) {
+         throw new IllegalStateException("Invalid comment key");
+      }
+      return Coordinates.builder().
+         channel(Integer.parseInt(indices[0])).
+         zSlice(Integer.parseInt(indices[1])).
+         timePoint(Integer.parseInt(indices[2])).
+         stagePosition(Integer.parseInt(indices[3])).
+         build();
    }
 
    private ByteBuffer readIntoBuffer(long position, int length) throws IOException {
