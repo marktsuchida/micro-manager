@@ -8,7 +8,7 @@ import java.util.Collections;
 
 import static org.micromanager.data.internal.PropertyKey.*;
 
-public class LegacyMultiStagePositionSchema implements LegacyJSONSchema {
+public class LegacyMultiStagePositionSchema extends LegacyJSONSchema {
    private LegacyMultiStagePositionSchema() {}
    private static LegacyJSONSchema INSTANCE = new LegacyMultiStagePositionSchema();
    public static LegacyJSONSchema getInstance() { return INSTANCE; }

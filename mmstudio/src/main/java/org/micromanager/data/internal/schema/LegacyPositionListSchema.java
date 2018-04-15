@@ -17,7 +17,7 @@ import static org.micromanager.data.internal.PropertyKey.*;
  *     <li>A JSON array embedded in SummaryMetadata STAGE_POSITIONS (2.x)</li>
  * </ul>
  */
-public class LegacyPositionListSchema implements LegacyJSONSchema {
+public class LegacyPositionListSchema extends LegacyJSONSchema {
    private LegacyPositionListSchema() {}
    private static LegacyJSONSchema INSTANCE = new LegacyPositionListSchema();
    public static LegacyJSONSchema getInstance() { return INSTANCE; }

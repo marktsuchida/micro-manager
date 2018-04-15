@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.micromanager.data.internal.PropertyKey.*;
 
-public class LegacySummaryMetadataSchema implements LegacyJSONSchema {
+public class LegacySummaryMetadataSchema extends LegacyJSONSchema {
    private LegacySummaryMetadataSchema() {}
    private static LegacyJSONSchema INSTANCE = new LegacySummaryMetadataSchema();
    public static LegacyJSONSchema getInstance() { return INSTANCE; }

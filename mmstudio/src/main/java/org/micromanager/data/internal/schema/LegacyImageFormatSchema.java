@@ -8,7 +8,7 @@ import java.util.Collections;
 
 import static org.micromanager.data.internal.PropertyKey.*;
 
-public class LegacyImageFormatSchema implements LegacyJSONSchema {
+public class LegacyImageFormatSchema extends LegacyJSONSchema {
    private LegacyImageFormatSchema() {}
    private static LegacyJSONSchema INSTANCE = new LegacyImageFormatSchema();
    public static LegacyJSONSchema getInstance() { return INSTANCE; }

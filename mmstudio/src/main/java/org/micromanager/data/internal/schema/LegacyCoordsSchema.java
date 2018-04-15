@@ -8,7 +8,7 @@ import java.util.Collections;
 
 import static org.micromanager.data.internal.PropertyKey.*;
 
-public class LegacyCoordsSchema implements LegacyJSONSchema {
+public class LegacyCoordsSchema extends LegacyJSONSchema {
    private LegacyCoordsSchema() {}
    private static LegacyJSONSchema INSTANCE = new LegacyCoordsSchema();
    public static LegacyJSONSchema getInstance() { return INSTANCE; }
