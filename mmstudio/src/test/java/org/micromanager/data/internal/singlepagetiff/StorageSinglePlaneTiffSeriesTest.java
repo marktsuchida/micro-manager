@@ -14,6 +14,7 @@ import org.micromanager.data.Storage;
 import org.micromanager.data.internal.DefaultDatastore;
 import org.micromanager.data.internal.DefaultImage;
 import org.micromanager.data.internal.DefaultMetadata;
+import org.micromanager.testing.TemporaryDirectory;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class StorageSinglePlaneTiffSeriesTest {
    static Image SMALL_IMAGE;
-   Path tempDir_;
+   TemporaryDirectory tempDir_;
+   Path tempPath_;
 
    @BeforeAll
    public static void initAll() {
@@ -40,28 +42,24 @@ public class StorageSinglePlaneTiffSeriesTest {
 
    @BeforeEach
    public void init() throws IOException {
-      tempDir_ = Files.createTempDirectory(getClass().getSimpleName());
+      tempDir_ = new TemporaryDirectory(getClass());
+      tempPath_ = tempDir_.getPath();
    }
 
    @AfterEach
    public void tearDown() throws IOException {
-      List<Path> paths = Files.walk(tempDir_).collect(Collectors.toList());
-      Collections.reverse(paths);
-      for (Path p : paths) {
-         Files.deleteIfExists(p);
-      }
-      Files.deleteIfExists(tempDir_);
+      tempDir_.close();
    }
 
    @Test
    public void testRejectExistingDirectory() {
       DefaultDatastore store = new DefaultDatastore();
-      assertThrows(IOException.class, () -> new StorageSinglePlaneTiffSeries(store, tempDir_.toString(), true));
+      assertThrows(IOException.class, () -> new StorageSinglePlaneTiffSeries(store, tempPath_.toString(), true));
    }
 
    @Test
    public void testWriteEmpty() throws IOException {
-      Path storageDir = tempDir_.resolve("foo");
+      Path storageDir = tempPath_.resolve("foo");
       DefaultDatastore store = new DefaultDatastore();
       Storage storage = new StorageSinglePlaneTiffSeries(store, storageDir.toString(), true);
       storage.close();
@@ -72,7 +70,7 @@ public class StorageSinglePlaneTiffSeriesTest {
 
    @Test
    public void testWriteSingleImageProducesCorrectFiles() throws IOException {
-      Path storageDir = tempDir_.resolve("foo");
+      Path storageDir = tempPath_.resolve("foo");
       DefaultDatastore store = new DefaultDatastore();
       Storage storage = new StorageSinglePlaneTiffSeries(store, storageDir.toString(), true);
       storage.putImage(SMALL_IMAGE);
