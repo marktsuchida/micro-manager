@@ -93,7 +93,7 @@ public class TiffOffsetField {
    }
 
    private static ByteBuffer makeWriteBuffer(int value, ByteOrder order) {
-      ByteBuffer buffer = ByteBuffer.allocate(4).order(order);
+      ByteBuffer buffer = ByteBuffer.allocateDirect(4).order(order);
       buffer.putInt(value).rewind();
       return buffer;
    }

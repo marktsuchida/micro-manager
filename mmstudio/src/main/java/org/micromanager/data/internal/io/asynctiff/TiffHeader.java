@@ -120,7 +120,7 @@ public class TiffHeader {
    //
 
    public CompletionStage<Void> write(AsynchronousFileChannel chan) {
-      ByteBuffer buffer = ByteBuffer.allocate(HEADER_SIZE).order(byteOrder_);
+      ByteBuffer buffer = ByteBuffer.allocateDirect(HEADER_SIZE).order(byteOrder_);
       write(buffer);
       buffer.rewind();
       return Async.write(chan, buffer, 0);

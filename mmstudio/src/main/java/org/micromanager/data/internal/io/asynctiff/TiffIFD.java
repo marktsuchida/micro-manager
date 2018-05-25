@@ -34,7 +34,7 @@ public class TiffIFD {
    //
 
    public static CompletionStage<TiffIFD> read(AsynchronousFileChannel chan, ByteOrder order, long offset) {
-      ByteBuffer countBuffer = ByteBuffer.allocate(ENTRY_COUNT_SIZE).order(order);
+      ByteBuffer countBuffer = ByteBuffer.allocateDirect(ENTRY_COUNT_SIZE).order(order);
       return Async.read(chan, countBuffer, offset).
          thenComposeAsync(cb -> {
             cb.rewind();
@@ -228,7 +228,7 @@ public class TiffIFD {
    //
 
    public CompletionStage<Long> write(AsynchronousFileChannel chan) {
-      ByteBuffer buffer = ByteBuffer.allocate(
+      ByteBuffer buffer = ByteBuffer.allocateDirect(
          ENTRY_COUNT_SIZE + ENTRY_SIZE * entries_.size() + NEXT_IFD_OFFSET_SIZE).
          order(byteOrder_);
       BufferedPositionGroup posGroup = BufferedPositionGroup.create();
