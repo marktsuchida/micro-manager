@@ -1,18 +1,11 @@
 package org.micromanager;
 
+import org.micromanager.propertymap.PropertyMapBuildAccess;
 import org.micromanager.propertymap.PropertyMapReadAccess;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * An immutable typed key-value store for various settings.
@@ -89,7 +82,7 @@ public interface PropertyMap extends PropertyMapReadAccess {
     * <p>
     * See {@link PropertyMaps#builder()} for a usage example.
     */
-   interface Builder extends PropertyMapBuilder {
+   interface Builder extends PropertyMapBuildAccess, PropertyMapBuilder {
       // Note: we could conceivably have a single 'put()' method with
       // overloaded parameter types. We avoid this, because code using property
       // maps generally should be conscious of the type choice. The type will
@@ -100,83 +93,6 @@ public interface PropertyMap extends PropertyMapReadAccess {
       // UserProfile. Also note that LegacyMM2BetaUserProfileDeserializer (and
       // possibly others) determine method names reflectively according to a
       // strict pattern.
-
-      // Primitive
-      Builder putBoolean(String key, Boolean value);
-      Builder putBooleanList(String key, boolean... values);
-      Builder putBooleanList(String key, Iterable<Boolean> values);
-      Builder putByte(String key, Byte value);
-      Builder putByteList(String key, byte... values);
-      Builder putByteList(String key, Iterable<Byte> values);
-      Builder putShort(String key, Short value);
-      Builder putShortList(String key, short... values);
-      Builder putShortList(String key, Iterable<Short> values);
-      Builder putInteger(String key, Integer value);
-      Builder putIntegerList(String key, int... values);
-      Builder putIntegerList(String key, Iterable<Integer> values);
-      Builder putLong(String key, Long value);
-      Builder putLongList(String key, long ... values);
-      Builder putLongList(String key, Iterable<Long> values);
-      Builder putFloat(String key, Float value);
-      Builder putFloatList(String key, float... values);
-      Builder putFloatList(String key, Iterable<Float> values);
-      Builder putDouble(String key, Double value);
-      Builder putDoubleList(String key, double... values);
-      Builder putDoubleList(String key, Iterable<Double> values);
-
-      // Immutable
-      Builder putString(String key, String value);
-      Builder putStringList(String key, String... values);
-      Builder putStringList(String key, Iterable<String> values);
-      Builder putUUID(String key, UUID value);
-      Builder putUUIDList(String key, UUID... values);
-      Builder putUUIDList(String key, Iterable<UUID> values);
-      Builder putColor(String key, Color value);
-      Builder putColorList(String key, Color... values);
-      Builder putColorList(String key, Iterable<Color> values);
-      Builder putAffineTransform(String key, AffineTransform value);
-      Builder putAffineTransformList(String key, AffineTransform... values);
-      Builder putAffineTransformList(String key, Iterable<AffineTransform> values);
-      Builder putPropertyMap(String key, PropertyMap value);
-      Builder putPropertyMapList(String key, PropertyMap... values);
-      Builder putPropertyMapList(String key, Iterable<PropertyMap> values);
-
-      // TODO Java 8 java.time.ZonedDateTime and LocalDateTime
-
-      // Mutable
-      Builder putRectangle(String key, Rectangle value);
-      Builder putRectangleList(String key, Rectangle... values);
-      Builder putRectangleList(String key, Iterable<Rectangle> values);
-      Builder putDimension(String key, Dimension value);
-      Builder putDimensionList(String key, Dimension... values);
-      Builder putDimensionList(String key, Iterable<Dimension> values);
-      Builder putPoint(String key, Point value);
-      Builder putPointList(String key, Point... values);
-      Builder putPointList(String key, Iterable<Point> values);
-
-      // Enums-as-strings
-      <E extends Enum<E>> Builder putEnumAsString(String key, E value);
-      <E extends Enum<E>> Builder putEnumListAsStringList(String key, E... values);
-      <E extends Enum<E>> Builder putEnumListAsStringList(String key, Iterable<E> values);
-
-      /**
-       * (Advanced) Add a value without knowing its type.
-       *
-       * Use of this method should be reserved for special-purpose code
-       * dealing with interconversion with other data formats. Do no use in
-       * everyday programming.
-       *
-       * @param key the key
-       * @param value the value
-       * @return this builder
-       */
-      Builder putOpaqueValue(String key, OpaqueValue value);
-
-      Builder putAll(PropertyMap map);
-      Builder clear();
-      Builder remove(String key);
-      Builder removeAll(Collection<?> keys);
-      Builder retainAll(Collection<?> keys);
 
       /**
        * Create the property map.
