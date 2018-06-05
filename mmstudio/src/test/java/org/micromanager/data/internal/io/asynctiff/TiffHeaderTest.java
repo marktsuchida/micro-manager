@@ -136,10 +136,10 @@ public class TiffHeaderTest {
       try (AsynchronousFileChannel chan = AsynchronousFileChannel.open(tmpFile_,
          StandardOpenOption.READ)) {
          TiffHeader header = TiffHeader.read(chan).toCompletableFuture().get();
-         assertEquals(42, header.getTiffMagic());
+         assertEquals(TiffVersion.TIFF32, header.getTiffLayout().version());
          assertEquals(byteOrder.equals("MM") ?
             ByteOrder.BIG_ENDIAN: ByteOrder.LITTLE_ENDIAN,
-            header.getTiffByteOrder());
+            header.getTiffLayout().order());
          TiffIFD ifd = header.readFirstIFD(chan).toCompletableFuture().get();
          assertNotNull(ifd);
          assertFalse(ifd.hasNextIFD());
@@ -153,8 +153,9 @@ public class TiffHeaderTest {
    public void testWriteMinimalExample(int o) throws Exception {
       ByteOrder order = o != 0 ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
 
+      TiffLayout layout = TiffLayout.create(order, TiffVersion.TIFF32);
       TiffOffsetField firstIFDOffset = TiffOffsetField.create("FirstIFDOffset");
-      TiffHeader header = TiffHeader.createForWrite(order, firstIFDOffset);
+      TiffHeader header = TiffHeader.createForWrite(layout, firstIFDOffset);
 
       ByteBuffer pixels = ByteBuffer.allocate(4 * 8);
       for (int y = 0; y < 4; ++y) {
@@ -168,7 +169,7 @@ public class TiffHeaderTest {
       TiffOffsetFieldGroup ifdFieldGroup = TiffOffsetFieldGroup.create();
       TiffValue.Offsets stripOffsets = TiffValue.Offsets.create(1, "StripOffsets", ifdFieldGroup);
       TiffOffsetField pixelsOffset = stripOffsets.offsetValue(0);
-      TiffIFD ifd = TiffIFD.builder(order, nextIFDOffset, ifdFieldGroup).
+      TiffIFD ifd = TiffIFD.builder(layout, nextIFDOffset, ifdFieldGroup).
          entry(TiffTag.Known.ImageWidth.get(), TiffValue.Longs.create(8)).
          entry(TiffTag.Known.ImageLength.get(), TiffValue.Shorts.create((short) 4)).
          entry(TiffTag.Known.BitsPerSample.get(), TiffValue.Shorts.create((short) 8)).
@@ -205,10 +206,10 @@ public class TiffHeaderTest {
             thenCompose(v -> Async.size(chan)).
             thenCompose(s -> {
                ifdBufferPosGroup.setBufferFileOffset(s);
-               ifdFieldGroup.updateAll(ifdBuffer);
+               ifdFieldGroup.updateAll(layout, ifdBuffer);
                return Async.write(chan, ifdBuffer, s);
             }).
-            thenCompose(v -> firstIFDOffset.update(chan, order)).
+            thenCompose(v -> firstIFDOffset.update(layout, chan)).
             thenCompose(v -> Async.size(chan)).
             toCompletableFuture().get();
       }
@@ -219,8 +220,8 @@ public class TiffHeaderTest {
       try (AsynchronousFileChannel chan = AsynchronousFileChannel.open(tmpFile_,
          StandardOpenOption.READ)) {
          TiffHeader readBackHeader = TiffHeader.read(chan).toCompletableFuture().get();
-         assertEquals(42, readBackHeader.getTiffMagic());
-         assertEquals(order, readBackHeader.getTiffByteOrder());
+         assertEquals(TiffVersion.TIFF32, readBackHeader.getTiffLayout().version());
+         assertEquals(order, readBackHeader.getTiffLayout().order());
 
          TiffIFD readBackIFD = readBackHeader.readFirstIFD(chan).toCompletableFuture().get();
          assertNotNull(readBackIFD);

@@ -36,6 +36,9 @@ public class TiffOffsetFieldTest {
 
    private static final byte[] POINTEE_DATA = new byte[] { 0x11, 0x22, 0x33, 0x44 };
 
+   private static final TiffLayout LAYOUT = TiffLayout.create(
+      ByteOrder.BIG_ENDIAN, TiffVersion.TIFF32);
+
    @BeforeEach
    public void init() throws Exception {
       file_ = Files.createTempFile(getClass().getSimpleName(), null);
@@ -60,10 +63,10 @@ public class TiffOffsetFieldTest {
          TiffOffsetField field = TiffOffsetField.forOffsetValue(
             UnbufferedPosition.at(32), "test");
          chan.write(ByteBuffer.wrap(POINTEE_DATA),
-            field.getOffsetValue().get()). get();
+            field.getOffsetValue().get()).get();
 
          // Later we write the pointer
-         field.write(chan, ByteOrder.BIG_ENDIAN, 64).
+         field.write(LAYOUT, chan, 64).
             toCompletableFuture().get();
       }
 
@@ -85,16 +88,15 @@ public class TiffOffsetFieldTest {
          // First we leave a placeholder for the pointer
          TiffOffsetField field = TiffOffsetField.create("test");
          fieldGroup.add(field);
-         field.write(chan, ByteOrder.BIG_ENDIAN, 32).
+         field.write(LAYOUT, chan, 32).
             toCompletableFuture().get();
 
          // Later we write the pointee
+         chan.write(ByteBuffer.wrap(POINTEE_DATA), 64).get();
          field.setOffsetValue(UnbufferedPosition.at(64));
-         chan.write(ByteBuffer.wrap(POINTEE_DATA),
-            field.getOffsetValue().get()).get();
 
          // Finally we update the pointer
-         fieldGroup.updateAll(chan, ByteOrder.BIG_ENDIAN)
+         fieldGroup.updateAll(LAYOUT, chan)
             .toCompletableFuture().get();
       }
 
@@ -124,14 +126,14 @@ public class TiffOffsetFieldTest {
       // When it's time to write the pointer, we leave a placeholder as we do
       // not yet know the absolute offset of the pointee
       buffer.position(64);
-      field.write(buffer, posGroup);
+      field.write(LAYOUT, buffer, posGroup);
       buffer.rewind();
 
       // When it's time to flush the buffer to disk, we know where it will be
       // written, so can make the offset value definite and update the pointer
       long bufferStart = 128;
       posGroup.setBufferFileOffset(bufferStart);
-      field.update(buffer);
+      field.update(LAYOUT, buffer);
 
       // Finally, we flush the buffer to disk
       try (AsynchronousFileChannel chan = AsynchronousFileChannel.open(file_,
@@ -160,7 +162,7 @@ public class TiffOffsetFieldTest {
       TiffOffsetField field = TiffOffsetField.create("test");
       fieldGroup.add(field);
       buffer.position(32);
-      field.write(buffer, posGroup);
+      field.write(LAYOUT, buffer, posGroup);
       buffer.rewind();
 
       // Next, we write the pointee data
@@ -172,7 +174,7 @@ public class TiffOffsetFieldTest {
       // Finally, before flushing to disk, we update the pointer value
       long bufferStart = 128;
       posGroup.setBufferFileOffset(bufferStart);
-      fieldGroup.updateAll(buffer);
+      fieldGroup.updateAll(LAYOUT, buffer);
 
       try (AsynchronousFileChannel chan = AsynchronousFileChannel.open(file_,
          StandardOpenOption.WRITE)) {
@@ -202,7 +204,7 @@ public class TiffOffsetFieldTest {
          ByteBuffer buffer = ByteBuffer.allocate(128);
          Arrays.fill(buffer.array(), BUFFER_BACKGROUND);
          buffer.position(32);
-         field.write(buffer);
+         field.write(LAYOUT, buffer);
          buffer.rewind();
 
          long bufferStart = 128;
@@ -232,7 +234,7 @@ public class TiffOffsetFieldTest {
          TiffOffsetField field = TiffOffsetField.create("test");
          fieldGroup.add(field);
          buffer.position(32);
-         field.write(buffer, posGroup);
+         field.write(LAYOUT, buffer, posGroup);
          buffer.rewind();
 
          // The buffer gets flushed to disk before we know where the pointee
@@ -247,7 +249,7 @@ public class TiffOffsetFieldTest {
             field.getOffsetValue().get()).get();
 
          // Finally, we update the offset field in the file
-         fieldGroup.updateAll(chan, ByteOrder.BIG_ENDIAN).
+         fieldGroup.updateAll(LAYOUT, chan).
             toCompletableFuture().get();
       }
 
@@ -281,7 +283,7 @@ public class TiffOffsetFieldTest {
       TiffOffsetField field = TiffOffsetField.create("test");
       fieldGroup12.add(field);
       buffer1.position(32);
-      field.write(buffer1, posGroup1);
+      field.write(LAYOUT, buffer1, posGroup1);
       buffer1.rewind();
 
       // Next, we write the pointee data
@@ -298,7 +300,7 @@ public class TiffOffsetFieldTest {
       // Thus we can update the pointer in buffer1
       posGroup1.setBufferFileOffset(bufferStart1);
       posGroup2.setBufferFileOffset(bufferStart2);
-      fieldGroup12.updateAll(buffer1);
+      fieldGroup12.updateAll(LAYOUT, buffer1);
 
       // And write both buffers to disk
       try (AsynchronousFileChannel chan = AsynchronousFileChannel.open(file_,

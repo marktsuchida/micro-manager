@@ -20,6 +20,10 @@ public enum TiffFieldType {
    SRATIONAL(10, 8, TiffValue.SignedRationals::new),
    FLOAT(11, 4, TiffValue.Floats::new),
    DOUBLE(12, 8, TiffValue.Doubles::new),
+   IFD(13, 4, TiffValue.IFDs::new),
+   LONG8(16, 8, TiffValue.Long8s::new),
+   SLONG8(17, 8, TiffValue.SignedLong8s::new),
+   IFD8(18, 8, TiffValue.IFD8s::new),
    ;
 
    private static final Map<Short, TiffFieldType> VALUES = new HashMap<>();
@@ -50,10 +54,6 @@ public enum TiffFieldType {
 
    public int getElementSize() {
       return elementSize_;
-   }
-
-   public boolean fitsInIFDEntry(int count) {
-      return elementSize_ * count <= 4;
    }
 
    public TiffValue read(int count, ByteBuffer b) {

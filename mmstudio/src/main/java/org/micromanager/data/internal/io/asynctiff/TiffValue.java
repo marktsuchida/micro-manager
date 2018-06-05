@@ -28,12 +28,8 @@ public abstract class TiffValue {
    public abstract TiffFieldType getTiffType();
    public abstract int getCount();
 
-   public final int getByteCount() {
+   public final long getByteCount() {
       return getTiffType().getElementSize() * getCount();
-   }
-
-   public final boolean fitsInIFDEntry() {
-      return getTiffType().fitsInIFDEntry(getCount());
    }
 
    public abstract void write(ByteBuffer b, BufferedPositionGroup posGroup);
@@ -321,6 +317,29 @@ public abstract class TiffValue {
       }
    }
 
+   public static class IFDs extends Longs {
+      IFDs(int count, ByteBuffer b) {
+         super(count, b);
+      }
+
+      private IFDs(int[] values) {
+         super(values);
+      }
+
+      public static IFDs create(int[] values) {
+         return new IFDs(values);
+      }
+
+      public static IFDs create(int value) {
+         return create(new int[] { value });
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.IFD;
+      }
+   }
+
    public static class SignedLongs extends Longs {
       SignedLongs(int count, ByteBuffer b) {
          super(count, b);
@@ -346,6 +365,100 @@ public abstract class TiffValue {
       @Override
       public int intValue(int index) {
          return values_[index];
+      }
+
+      @Override
+      public long longValue(int index) {
+         return values_[index];
+      }
+   }
+
+   public static class Long8s extends TiffValue {
+      protected final long[] values_;
+
+      Long8s(int count, ByteBuffer b) {
+         values_ = new long[count];
+         b.asLongBuffer().get(values_);
+         b.position(b.position() + 8 * count);
+      }
+
+      private Long8s(long[] values) {
+         values_ = values;
+      }
+
+      public static Long8s create(long[] values) {
+         return new Long8s(values);
+      }
+
+      public static Long8s create(long value) {
+         return create(new long[] { value });
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.LONG8;
+      }
+
+      @Override
+      public int getCount() {
+         return values_.length;
+      }
+
+      @Override
+      public long longValue(int index) {
+         return values_[index];
+      }
+
+      @Override
+      public void write(ByteBuffer b, BufferedPositionGroup posGroup) {
+         b.asLongBuffer().put(values_);
+         b.position(b.position() + 8 * values_.length);
+      }
+   }
+
+   public static class IFD8s extends Long8s {
+      IFD8s(int count, ByteBuffer b) {
+         super(count, b);
+      }
+
+      private IFD8s(long[] values) {
+         super(values);
+      }
+
+      public static IFD8s create(long[] values) {
+         return new IFD8s(values);
+      }
+
+      public static IFD8s create(long value) {
+         return create(new long[] { value });
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.IFD8;
+      }
+   }
+
+   public static class SignedLong8s extends Long8s {
+      SignedLong8s(int count, ByteBuffer b) {
+         super(count, b);
+      }
+
+      private SignedLong8s(long[] values) {
+         super(values);
+      }
+
+      public static SignedLong8s create(long[] values) {
+         return new SignedLong8s(values);
+      }
+
+      public static SignedLong8s create(long value) {
+         return create(new long[] { value });
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.SLONG8;
       }
 
       @Override
@@ -528,7 +641,7 @@ public abstract class TiffValue {
    }
 
    public static class Offsets extends TiffValue {
-      private final List<TiffOffsetField> offsets_ = new ArrayList<>();
+      protected final List<TiffOffsetField> offsets_ = new ArrayList<>();
 
       private Offsets(int count, String annotation, TiffOffsetFieldGroup fieldGroup) {
          for (int i = 0; i < count; ++i) {
@@ -561,9 +674,68 @@ public abstract class TiffValue {
 
       @Override
       public void write(ByteBuffer b, BufferedPositionGroup posGroup) {
+         // The OFFSET type is only used in 32-bit TIFFs
+         TiffLayout layout = TiffLayout.create(b.order(), TiffVersion.TIFF32);
          for (int i = 0; i < offsets_.size(); ++i) {
-            offsets_.get(i).write(b, posGroup);
+            offsets_.get(i).write(layout, b, posGroup);
          }
+      }
+   }
+
+   public static class IFDOffsets extends Offsets {
+      private IFDOffsets(int count, String annotation, TiffOffsetFieldGroup fieldGroup) {
+         super(count, annotation, fieldGroup);
+      }
+
+      public static IFDOffsets create(int count, String annotation,
+                                TiffOffsetFieldGroup fieldGroup) {
+         return new IFDOffsets(count, annotation, fieldGroup);
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.IFD;
+      }
+   }
+
+   public static class Offset8s extends Offsets {
+      private Offset8s(int count, String annotation, TiffOffsetFieldGroup fieldGroup) {
+         super(count, annotation, fieldGroup);
+      }
+
+      public static Offsets create(int count, String annotation,
+                                   TiffOffsetFieldGroup fieldGroup) {
+         return new Offset8s(count, annotation, fieldGroup);
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.LONG8;
+      }
+
+      @Override
+      public void write(ByteBuffer b, BufferedPositionGroup posGroup) {
+         // The OFFSET8 type is only used in 64-bit TIFFs
+         TiffLayout layout = TiffLayout.create(b.order(), TiffVersion.TIFF64);
+         for (int i = 0; i < offsets_.size(); ++i) {
+            offsets_.get(i).write(layout, b, posGroup);
+         }
+      }
+   }
+
+   public static class IFDOffset8s extends Offset8s {
+      private IFDOffset8s(int count, String annotation, TiffOffsetFieldGroup fieldGroup) {
+         super(count, annotation, fieldGroup);
+      }
+
+      public static IFDOffset8s create(int count, String annotation,
+                                 TiffOffsetFieldGroup fieldGroup) {
+         return new IFDOffset8s(count, annotation, fieldGroup);
+      }
+
+      @Override
+      public TiffFieldType getTiffType() {
+         return TiffFieldType.IFD8;
       }
    }
 }

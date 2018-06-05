@@ -9,57 +9,67 @@ import org.micromanager.data.internal.io.Unsigned;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public abstract class TiffIFDEntry {
-   protected final ByteOrder byteOrder_;
+   protected final TiffLayout layout_;
    private final TiffTag tag_;
    private final TiffFieldType type_;
-   private final int count_;
+   private final long count_;
 
    //
    //
    //
 
-   public static TiffIFDEntry read(ByteBuffer b) throws TiffFormatException, EOFException {
+   public static TiffIFDEntry read(TiffLayout layout, ByteBuffer b) throws TiffFormatException, EOFException {
       TiffTag tag = TiffTag.fromTiffConstant(Unsigned.from(b.getShort()));
       TiffFieldType type = TiffFieldType.fromTiffConstant(Unsigned.from(b.getShort()));
       tag.checkType(type);
 
-      long longCount = Unsigned.from(b.getInt());
-      if (longCount > Integer.MAX_VALUE) {
-         throw new TiffFormatException(
-            "IFD entry count greater than INT_MAX not supported");
-      }
-      int count = (int) longCount;
+      long count = layout.version().readValueCount(b);
 
-      if (type.fitsInIFDEntry(count)) {
-         ByteBuffer bb = b.slice().order(b.order());
-         b.getInt();
-         TiffValue value = TiffValue.read(type, count, bb);
-         return new Immediate(b.order(), tag, type, count, value);
+      if (type.getElementSize() * count <= layout.version().getOffsetSize()) {
+         ByteBuffer bb = b.slice().order(layout.order());
+         b.position(b.position() + layout.version().getOffsetSize());
+         TiffValue value = TiffValue.read(type, (int) count, bb);
+         return new Immediate(layout, tag, type, count, value);
       }
-      long offset = Unsigned.from(b.getInt());
-      return new Pointer(b.order(), tag, type, count, offset);
+
+      // BigTIFF can have 64-bit count but our implementation cannot handle it
+      // due to the size limit of ByteBuffer (This limitation can in principle
+      // be removed)
+      if (type.getElementSize() * count > Integer.MAX_VALUE) {
+         throw new TiffFormatException("Tag data size exceeds limit supported by this implementation");
+      }
+
+      long offset = layout.version().readOffset(b);
+      return new Pointer(layout, tag, type, count, offset);
    }
 
-   public static TiffIFDEntry createForWrite(ByteOrder order,
+   public static TiffIFDEntry createForWrite(TiffLayout layout,
                                              TiffTag tag,
                                              TiffValue value,
                                              TiffOffsetFieldGroup fieldGroup) {
-      if (value.fitsInIFDEntry()) {
-         return new Immediate(order, tag, value);
+      // BigTIFF can have 64-bit count but our implementation cannot handle it
+      // due to the size limit of ByteBuffer (This limitation can in principle
+      // be removed)
+      if (value.getByteCount() > Integer.MAX_VALUE) {
+         throw new UnsupportedOperationException("Tag data size exceeds limit supported by this implementation");
       }
+
+      if (value.getByteCount() <= layout.version().getOffsetSize()) {
+         return new Immediate(layout, tag, value);
+      }
+
       TiffOffsetField offsetField = TiffOffsetField.create("Value of " + tag);
       fieldGroup.add(offsetField);
-      return new Pointer(order, tag, value, offsetField);
+      return new Pointer(layout, tag, value, offsetField);
    }
 
-   protected TiffIFDEntry(ByteOrder order, TiffTag tag, TiffFieldType type, int count) {
-      byteOrder_ = order;
+   protected TiffIFDEntry(TiffLayout layout, TiffTag tag, TiffFieldType type, long count) {
+      layout_ = layout;
       tag_ = tag;
       type_ = type;
       count_ = count;
@@ -77,7 +87,7 @@ public abstract class TiffIFDEntry {
       return type_;
    }
 
-   public int getCount() {
+   public long getCount() {
       return count_;
    }
 
@@ -97,14 +107,14 @@ public abstract class TiffIFDEntry {
       TiffValue value_;
 
       // Read
-      private Immediate(ByteOrder order, TiffTag tag, TiffFieldType type, int count, TiffValue value) {
-         super(order, tag, type, count);
+      private Immediate(TiffLayout layout, TiffTag tag, TiffFieldType type, long count, TiffValue value) {
+         super(layout, tag, type, count);
          value_ = value;
       }
 
       // Writing
-      private Immediate(ByteOrder order, TiffTag tag, TiffValue value) {
-         super(order, tag, value.getTiffType(), value.getCount());
+      private Immediate(TiffLayout layout, TiffTag tag, TiffValue value) {
+         super(layout, tag, value.getTiffType(), value.getCount());
          value_ = value;
       }
 
@@ -126,9 +136,9 @@ public abstract class TiffIFDEntry {
       @Override
       public void write(ByteBuffer dest, BufferedPositionGroup posGroup) {
          dest.putShort((short) getTag().getTiffConstant()).
-            putShort((short) getType().getTiffConstant()).
-            putInt(getCount());
-         value_.writeAndPad(dest, posGroup, 4);
+            putShort((short) getType().getTiffConstant());
+         layout_.version().writeValueCount(dest, getCount());
+         value_.writeAndPad(dest, posGroup, layout_.version().getOffsetSize());
       }
    }
 
@@ -137,8 +147,8 @@ public abstract class TiffIFDEntry {
       private final TiffOffsetField valueOffset_;
 
       // Read
-      private Pointer(ByteOrder order, TiffTag tag, TiffFieldType type, int count, long offset) {
-         super(order, tag, type, count);
+      private Pointer(TiffLayout layout, TiffTag tag, TiffFieldType type, long count, long offset) {
+         super(layout, tag, type, count);
 
          valueOffset_ = TiffOffsetField.forOffsetValue(
             UnbufferedPosition.at(offset),
@@ -146,25 +156,27 @@ public abstract class TiffIFDEntry {
       }
 
       // Writing
-      private Pointer(ByteOrder order, TiffTag tag, TiffValue value, TiffOffsetField valueOffset) {
-         super(order, tag, value.getTiffType(), value.getCount());
+      private Pointer(TiffLayout layout, TiffTag tag, TiffValue value, TiffOffsetField valueOffset) {
+         super(layout, tag, value.getTiffType(), value.getCount());
          value_ = value;
          valueOffset_ = valueOffset;
       }
 
       private int dataSize() {
-         return getType().getElementSize() * getCount();
+         // We are assuming that the size has been checked to fit in int
+         return (int) (getType().getElementSize() * getCount());
       }
 
       @Override
       public CompletionStage<TiffValue> readValue(AsynchronousFileChannel chan) {
-         ByteBuffer buffer = ByteBuffer.allocateDirect(dataSize()).order(byteOrder_);
+         ByteBuffer buffer = ByteBuffer.allocateDirect(dataSize()).
+            order(layout_.order());
          return Async.read(chan, buffer, valueOffset_.getOffsetValue().get()).
             thenComposeAsync(b -> {
                b.rewind();
                try {
                   return CompletableFuture.completedFuture(
-                     TiffValue.read(getType(), getCount(), b));
+                     TiffValue.read(getType(), (int) getCount(), b));
                }
                catch (IOException e) {
                   return Async.completedExceptionally(e);
@@ -175,12 +187,13 @@ public abstract class TiffIFDEntry {
       @Override
       public CompletionStage<Void> writeValue(AsynchronousFileChannel chan) {
          ByteBuffer buffer = ByteBuffer.allocateDirect(dataSize()).
-            order(byteOrder_);
+            order(layout_.order());
          BufferedPositionGroup posGroup = BufferedPositionGroup.create();
          value_.write(buffer, posGroup);
          buffer.rewind();
 
-         return Async.pad(chan, 4).
+         // The TIFF spec does not require this padding
+         return Async.pad(chan, layout_.version().getOffsetSize()).
             thenCompose(v -> {
                try {
                   long offset = chan.size();
@@ -196,7 +209,8 @@ public abstract class TiffIFDEntry {
 
       @Override
       public void writeValue(ByteBuffer dest, BufferedPositionGroup posGroup) {
-         int position = Alignment.align(dest.position(), 4);
+         // The TIFF spec does not require this padding
+         int position = Alignment.align(dest.position(), layout_.version().getOffsetSize());
          dest.position(position);
          valueOffset_.setOffsetValue(posGroup.positionInBuffer(position));
          value_.write(dest, posGroup);
@@ -205,9 +219,9 @@ public abstract class TiffIFDEntry {
       @Override
       public void write(ByteBuffer dest, BufferedPositionGroup posGroup) {
          dest.putShort((short) getTag().getTiffConstant()).
-            putShort((short) getType().getTiffConstant()).
-            putInt(getCount());
-         valueOffset_.write(dest, posGroup);
+            putShort((short) getType().getTiffConstant());
+         layout_.version().writeValueCount(dest, getCount());
+         valueOffset_.write(layout_, dest, posGroup);
       }
    }
 }

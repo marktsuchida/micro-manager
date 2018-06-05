@@ -1,7 +1,6 @@
 package org.micromanager.data.internal.io.asynctiff;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,20 +21,20 @@ public class TiffOffsetFieldGroup {
       fields_.add(field);
    }
 
-   public CompletionStage<Void> updateAll(AsynchronousFileChannel chan,
-                                          ByteOrder order) {
+   public CompletionStage<Void> updateAll(TiffLayout layout,
+                                          AsynchronousFileChannel chan) {
       fields_.sort(Comparator.comparingLong(f -> f.getFieldPosition().get()));
 
       CompletionStage<Void> stage = CompletableFuture.completedFuture(null);
       for (TiffOffsetField field : fields_) {
-         stage = stage.thenCompose(v -> field.update(chan, order));
+         stage = stage.thenCompose(v -> field.update(layout, chan));
       }
       return stage;
    }
 
-   public void updateAll(ByteBuffer buffer) {
+   public void updateAll(TiffLayout layout, ByteBuffer buffer) {
       for (TiffOffsetField field : fields_) {
-         field.update(buffer);
+         field.update(layout, buffer);
       }
    }
 }

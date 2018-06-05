@@ -7,12 +7,11 @@ import org.micromanager.data.internal.io.FilePosition;
 import org.micromanager.data.internal.io.UnbufferedPosition;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.concurrent.CompletionStage;
 
 public class TiffOffsetField {
-   private static final int PLACEHOLDER_VALUE = 0;
+   private static final long OFFSET_PLACEHOLDER = 0;
 
    private FilePosition fieldPosition_;
    private FilePosition offsetValue_;
@@ -92,9 +91,12 @@ public class TiffOffsetField {
       return offsetValue_ != null && offsetValue_.isComplete();
    }
 
-   private static ByteBuffer makeWriteBuffer(int value, ByteOrder order) {
-      ByteBuffer buffer = ByteBuffer.allocateDirect(4).order(order);
-      buffer.putInt(value).rewind();
+   private static ByteBuffer makeWriteBuffer(TiffLayout layout, long value) {
+      ByteBuffer buffer = ByteBuffer.allocateDirect(
+         layout.version().getOffsetSize()).
+         order(layout.order());
+      layout.version().writeOffset(buffer, value);
+      buffer.rewind();
       return buffer;
    }
 
@@ -102,44 +104,93 @@ public class TiffOffsetField {
    //
    //
 
-   CompletionStage<Void> write(AsynchronousFileChannel chan,
-                               ByteOrder order,
+   /**
+    * Write this offset field at the given position of the file.
+    *
+    * If the absolute offset value is not known yet, a placeholder is written.
+    *
+    * @param layout
+    * @param chan
+    * @param offset
+    * @return
+    */
+   CompletionStage<Void> write(TiffLayout layout,
+                               AsynchronousFileChannel chan,
                                long offset) {
       setFieldPosition(UnbufferedPosition.at(offset));
       return Async.write(chan,
-         makeWriteBuffer(
-            isOffsetValueComplete() ? (int) offsetValue_.get() : PLACEHOLDER_VALUE,
-            order),
+         makeWriteBuffer(layout,
+            isOffsetValueComplete() ? offsetValue_.get() : OFFSET_PLACEHOLDER),
          fieldPosition_.get());
    }
 
-   CompletionStage<Void> update(AsynchronousFileChannel chan, ByteOrder order) {
+   /**
+    * Rewrite this offset field to the file, overwriting a placeholder.
+    *
+    * @param layout
+    * @param chan
+    * @return
+    */
+   CompletionStage<Void> update(TiffLayout layout, AsynchronousFileChannel chan) {
       checkCompleteFieldPosition();
       checkCompleteOffsetValue();
-      return Async.write(chan, makeWriteBuffer((int) offsetValue_.get(), order),
+      return Async.write(chan, makeWriteBuffer(layout, offsetValue_.get()),
          fieldPosition_.get());
    }
 
-   public void write(ByteBuffer buffer, BufferedPositionGroup posGroup) {
+   /**
+    * Write this offset field to a buffer, tying the position of the offset
+    * field to the given position group.
+    *
+    * If the absolute offset value is not known yet, a placeholder is written.
+    *
+    * Later, when the buffer is written to a specific file position, the
+    * position group can be used to update this offset field, making the
+    * absolute position of the field available.
+    *
+    * @param layout
+    * @param buffer
+    * @param posGroup
+    */
+   public void write(TiffLayout layout,
+                     ByteBuffer buffer,
+                     BufferedPositionGroup posGroup) {
       setFieldPosition(posGroup.positionInBuffer(buffer.position()));
       if (isOffsetValueComplete()) {
-         write(buffer);
+         write(layout, buffer);
       }
       else {
-         buffer.putInt(PLACEHOLDER_VALUE);
+         layout.version().writeOffset(buffer, OFFSET_PLACEHOLDER);
       }
    }
 
-   public void write(ByteBuffer buffer) {
+   /**
+    * Write this offset field to a buffer, without recording the position of the
+    * offset field.
+    *
+    * This method can be used when the offset value is available and therefore
+    * it is not necessary to later update it.
+    *
+    * @param layout
+    * @param buffer
+    */
+   public void write(TiffLayout layout, ByteBuffer buffer) {
       checkCompleteOffsetValue();
-      buffer.putInt((int) offsetValue_.get());
+      layout.version().writeOffset(buffer, offsetValue_.get());
    }
 
-   public void update(ByteBuffer buffer) {
+   /**
+    * Rewrite this offset field to a buffer, overwriting a placeholder.
+    *
+    * @param layout
+    * @param buffer
+    */
+   public void update(TiffLayout layout, ByteBuffer buffer) {
       checkCompleteOffsetValue();
       checkBufferRelativeFieldPosition();
-      buffer.putInt(fieldPosition_.getPositionInBuffer(),
-         (int) offsetValue_.get());
+      layout.version().writeOffset(buffer,
+         fieldPosition_.getPositionInBuffer(),
+         offsetValue_.get());
    }
 
    @Override

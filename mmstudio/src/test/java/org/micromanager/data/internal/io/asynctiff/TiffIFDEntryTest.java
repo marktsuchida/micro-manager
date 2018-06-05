@@ -18,13 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TiffIFDEntryTest {
    @Test
    public void testReadImmediate() throws Exception {
+      TiffLayout layout = TiffLayout.create(ByteOrder.BIG_ENDIAN, TiffVersion.TIFF32);
       ByteBuffer b = ByteBuffer.wrap(new byte[] {
          0x66, 0x77,
          0x00, 0x01,
          0x00, 0x00, 0x00, 0x04,
          0x11, 0x22, 0x33, 0x44,
       });
-      TiffIFDEntry e = TiffIFDEntry.read(b);
+      TiffIFDEntry e = TiffIFDEntry.read(layout, b);
       assertEquals(0x6677, e.getTag().getTiffConstant());
       assertEquals(TiffFieldType.BYTE, e.getType());
       assertEquals(4, e.getCount());
@@ -37,13 +38,14 @@ public class TiffIFDEntryTest {
 
    @Test
    public void testReadPointer() throws Exception {
+      TiffLayout layout = TiffLayout.create(ByteOrder.BIG_ENDIAN, TiffVersion.TIFF32);
       ByteBuffer b = ByteBuffer.wrap(new byte[] {
          0x00, 0x00,
          0x00, 0x01,
          0x00, 0x00, 0x00, 0x05,
          0x00, 0x00, 0x00, 0x04,
       });
-      TiffIFDEntry entry = TiffIFDEntry.read(b);
+      TiffIFDEntry entry = TiffIFDEntry.read(layout, b);
       assertEquals(TiffFieldType.BYTE, entry.getType());
       assertEquals(5, entry.getCount());
 
@@ -76,8 +78,9 @@ public class TiffIFDEntryTest {
    @ValueSource(ints = { 0, 1 })
    public void testWriteImmediate(int o) throws Exception {
       ByteOrder order = o != 0 ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
+      TiffLayout layout = TiffLayout.create(order, TiffVersion.TIFF32);
       TiffOffsetFieldGroup fieldGroup = TiffOffsetFieldGroup.create();
-      TiffIFDEntry entry = TiffIFDEntry.createForWrite(order,
+      TiffIFDEntry entry = TiffIFDEntry.createForWrite(layout,
          TiffTag.Known.ImageWidth.get(),
          TiffValue.Shorts.create((short) 42),
          fieldGroup);
@@ -89,7 +92,7 @@ public class TiffIFDEntryTest {
       assertEquals(12, b.position());
 
       b.rewind();
-      TiffIFDEntry readBack = TiffIFDEntry.read(b);
+      TiffIFDEntry readBack = TiffIFDEntry.read(layout, b);
       assertEquals(TiffTag.Known.ImageWidth.get(), readBack.getTag());
       assertEquals(TiffFieldType.SHORT, readBack.getType());
       assertEquals(1, readBack.getCount());
@@ -103,8 +106,9 @@ public class TiffIFDEntryTest {
    @ValueSource(ints = { 0, 1 })
    public void testWritePointer(int o) throws Exception {
       ByteOrder order = o != 0 ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
+      TiffLayout layout = TiffLayout.create(order, TiffVersion.TIFF32);
       TiffOffsetFieldGroup fieldGroup = TiffOffsetFieldGroup.create();
-      TiffIFDEntry entry = TiffIFDEntry.createForWrite(order,
+      TiffIFDEntry entry = TiffIFDEntry.createForWrite(layout,
          TiffTag.Known.XResolution.get(),
          TiffValue.Rationals.create(1, 10000),
          fieldGroup);
@@ -124,7 +128,7 @@ public class TiffIFDEntryTest {
             ByteBuffer readBuf = ByteBuffer.allocate(128 - 32).order(order);
             chan.read(readBuf, 32).get();
             readBuf.position(8);
-            TiffIFDEntry readBack = TiffIFDEntry.read(readBuf);
+            TiffIFDEntry readBack = TiffIFDEntry.read(layout, readBuf);
             assertEquals(TiffTag.Known.XResolution.get(), readBack.getTag());
             assertEquals(TiffFieldType.RATIONAL, readBack.getType());
             assertEquals(1, readBack.getCount());
