@@ -156,6 +156,7 @@ public interface PropertyMap extends PropertyMapReadAccess {
       @Override Builder remove(String key);
       @Override Builder removeAll(Collection<?> keys);
       @Override Builder retainAll(Collection<?> keys);
+      @Override Builder replaceAll(PropertyMap map);
 
 
       /**

@@ -135,4 +135,6 @@ public interface PropertyMapBuildAccess {
    PropertyMapBuildAccess removeAll(Collection<?> keys);
 
    PropertyMapBuildAccess retainAll(Collection<?> keys);
+
+   PropertyMapBuildAccess replaceAll(PropertyMap map);
 }

@@ -93,4 +93,5 @@ public interface MutablePropertyMapView extends PropertyMapReadAccess, PropertyM
    @Override MutablePropertyMapView remove(String key);
    @Override MutablePropertyMapView removeAll(Collection<?> keys);
    @Override MutablePropertyMapView retainAll(Collection<?> keys);
+   @Override MutablePropertyMapView replaceAll(PropertyMap map);
 }

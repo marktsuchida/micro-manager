@@ -965,6 +965,12 @@ public final class DefaultPropertyMap implements PropertyMap {
       }
 
       @Override
+      public Builder replaceAll(PropertyMap map) {
+         map_.clear();
+         return this.putAll(map);
+      }
+
+      @Override
       public PropertyMap build() {
          return new DefaultPropertyMap(this);
       }

@@ -574,6 +574,15 @@ public final class ProfilePropertyMapView implements MutablePropertyMapView {
    }
 
    @Override
+   public MutablePropertyMapView replaceAll(PropertyMap pmap) {
+      write(new DefaultUserProfile.Editor() {
+         @Override public PropertyMap edit(PropertyMap input) {
+            return pmap;
+      }});
+      return this;
+   }
+
+   @Override
    public MutablePropertyMapView putBoolean(final String key, final Boolean value) {
       write(new DefaultUserProfile.Editor() {
          @Override public PropertyMap edit(PropertyMap input) {
