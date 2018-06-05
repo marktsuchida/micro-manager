@@ -3,9 +3,16 @@ package org.micromanager;
 import org.micromanager.propertymap.PropertyMapBuildAccess;
 import org.micromanager.propertymap.PropertyMapReadAccess;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * An immutable typed key-value store for various settings.
@@ -94,6 +101,63 @@ public interface PropertyMap extends PropertyMapReadAccess {
       // possibly others) determine method names reflectively according to a
       // strict pattern.
 
+
+      @Override Builder putBoolean(String key, Boolean value);
+      @Override Builder putBooleanList(String key, boolean... values);
+      @Override Builder putBooleanList(String key, Iterable<Boolean> values);
+      @Override Builder putByte(String key, Byte value);
+      @Override Builder putByteList(String key, byte... values);
+      @Override Builder putByteList(String key, Iterable<Byte> values);
+      @Override Builder putShort(String key, Short value);
+      @Override Builder putShortList(String key, short... values);
+      @Override Builder putShortList(String key, Iterable<Short> values);
+      @Override Builder putInteger(String key, Integer value);
+      @Override Builder putIntegerList(String key, int... values);
+      @Override Builder putIntegerList(String key, Iterable<Integer> values);
+      @Override Builder putLong(String key, Long value);
+      @Override Builder putLongList(String key, long... values);
+      @Override Builder putLongList(String key, Iterable<Long> values);
+      @Override Builder putFloat(String key, Float value);
+      @Override Builder putFloatList(String key, float... values);
+      @Override Builder putFloatList(String key, Iterable<Float> values);
+      @Override Builder putDouble(String key, Double value);
+      @Override Builder putDoubleList(String key, double... values);
+      @Override Builder putDoubleList(String key, Iterable<Double> values);
+      @Override Builder putString(String key, String value);
+      @Override Builder putStringList(String key, String... values);
+      @Override Builder putStringList(String key, Iterable<String> values);
+      @Override Builder putUUID(String key, UUID value);
+      @Override Builder putUUIDList(String key, UUID... values);
+      @Override Builder putUUIDList(String key, Iterable<UUID> values);
+      @Override Builder putColor(String key, Color value);
+      @Override Builder putColorList(String key, Color... values);
+      @Override Builder putColorList(String key, Iterable<Color> values);
+      @Override Builder putAffineTransform(String key, AffineTransform value);
+      @Override Builder putAffineTransformList(String key, AffineTransform... values);
+      @Override Builder putAffineTransformList(String key, Iterable<AffineTransform> values);
+      @Override Builder putPropertyMap(String key, PropertyMap value);
+      @Override Builder putPropertyMapList(String key, PropertyMap... values);
+      @Override Builder putPropertyMapList(String key, Iterable<PropertyMap> values);
+      @Override Builder putRectangle(String key, Rectangle value);
+      @Override Builder putRectangleList(String key, Rectangle... values);
+      @Override Builder putRectangleList(String key, Iterable<Rectangle> values);
+      @Override Builder putDimension(String key, Dimension value);
+      @Override Builder putDimensionList(String key, Dimension... values);
+      @Override Builder putDimensionList(String key, Iterable<Dimension> values);
+      @Override Builder putPoint(String key, Point value);
+      @Override Builder putPointList(String key, Point... values);
+      @Override Builder putPointList(String key, Iterable<Point> values);
+      @Override <E extends Enum<E>> Builder putEnumAsString(String key, E value);
+      @Override <E extends Enum<E>> Builder putEnumListAsStringList(String key, E... values);
+      @Override <E extends Enum<E>> Builder putEnumListAsStringList(String key, Iterable<E> values);
+      @Override Builder putOpaqueValue(String key, PropertyMapReadAccess.OpaqueValue value);
+      @Override Builder putAll(PropertyMap map);
+      @Override Builder clear();
+      @Override Builder remove(String key);
+      @Override Builder removeAll(Collection<?> keys);
+      @Override Builder retainAll(Collection<?> keys);
+
+
       /**
        * Create the property map.
        * @return the new property map
@@ -102,7 +166,7 @@ public interface PropertyMap extends PropertyMapReadAccess {
       PropertyMap build();
 
 
-      // Deprecated methods, repeated here to add javadoc
+      // Deprecated methods, repeated here only to add javadoc
 
       /** @deprecated Use {@link #putStringList} instead. */
       @Deprecated
@@ -136,29 +200,18 @@ public interface PropertyMap extends PropertyMapReadAccess {
     */
    @Deprecated
    interface PropertyMapBuilder {
-      @Deprecated
       PropertyMap build();
-      @Deprecated
+
       PropertyMapBuilder putString(String key, String value);
-      @Deprecated
-      PropertyMapBuilder putStringArray(String key, String[] values);
-      @Deprecated
-      PropertyMapBuilder putInt(String key, Integer value);
-      @Deprecated
-      PropertyMapBuilder putIntArray(String key, Integer[] values);
-      @Deprecated
+      @Deprecated PropertyMapBuilder putStringArray(String key, String[] values);
+      @Deprecated PropertyMapBuilder putInt(String key, Integer value);
+      @Deprecated PropertyMapBuilder putIntArray(String key, Integer[] values);
       PropertyMapBuilder putLong(String key, Long value);
-      @Deprecated
-      PropertyMapBuilder putLongArray(String key, Long[] values);
-      @Deprecated
+      @Deprecated PropertyMapBuilder putLongArray(String key, Long[] values);
       PropertyMapBuilder putDouble(String key, Double value);
-      @Deprecated
-      PropertyMapBuilder putDoubleArray(String key, Double[] values);
-      @Deprecated
+      @Deprecated PropertyMapBuilder putDoubleArray(String key, Double[] values);
       PropertyMapBuilder putBoolean(String key, Boolean value);
-      @Deprecated
-      PropertyMapBuilder putBooleanArray(String key, Boolean[] values);
-      @Deprecated
+      @Deprecated PropertyMapBuilder putBooleanArray(String key, Boolean[] values);
       PropertyMapBuilder putPropertyMap(String key, PropertyMap values);
    }
 

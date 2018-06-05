@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.micromanager.PropertyMap;
+import org.micromanager.propertymap.PropertyMapReadAccess;
 
 
 public final class ProfilePropertyMapView implements MutablePropertyMapView {
@@ -73,6 +74,11 @@ public final class ProfilePropertyMapView implements MutablePropertyMapView {
    @Override
    public PropertyMap toPropertyMap() {
       return read();
+   }
+
+   @Override
+   public PropertyMapReadAccess.OpaqueValue getAsOpaqueValue(String key) {
+      return read().getAsOpaqueValue(key);
    }
 
    @Override
@@ -518,6 +524,11 @@ public final class ProfilePropertyMapView implements MutablePropertyMapView {
    }
 
    @Override
+   public String toJSON() {
+      return read().toJSON();
+   }
+
+   @Override
    public MutablePropertyMapView putAll(final PropertyMap pmap) {
       write(new DefaultUserProfile.Editor() {
          @Override public PropertyMap edit(PropertyMap input) {
@@ -779,6 +790,33 @@ public final class ProfilePropertyMapView implements MutablePropertyMapView {
    }
 
    @Override
+   public MutablePropertyMapView putUUID(String key, UUID value) {
+      write(new DefaultUserProfile.Editor() {
+         @Override public PropertyMap edit(PropertyMap input) {
+            return input.copyBuilder().putUUID(key, value).build();
+         }});
+      return this;
+   }
+
+   @Override
+   public MutablePropertyMapView putUUIDList(String key, UUID... values) {
+      write(new DefaultUserProfile.Editor() {
+         @Override public PropertyMap edit(PropertyMap input) {
+            return input.copyBuilder().putUUIDList(key, values).build();
+         }});
+      return this;
+   }
+
+   @Override
+   public MutablePropertyMapView putUUIDList(String key, Iterable<UUID> values) {
+      write(new DefaultUserProfile.Editor() {
+         @Override public PropertyMap edit(PropertyMap input) {
+            return input.copyBuilder().putUUIDList(key, values).build();
+         }});
+      return this;
+   }
+
+   @Override
    public MutablePropertyMapView putColor(final String key, final Color value) {
       write(new DefaultUserProfile.Editor() {
          @Override public PropertyMap edit(PropertyMap input) {
@@ -966,6 +1004,16 @@ public final class ProfilePropertyMapView implements MutablePropertyMapView {
       }});
       return this;
    }
+
+   @Override
+   public MutablePropertyMapView putOpaqueValue(String key, PropertyMapReadAccess.OpaqueValue value) {
+      write(new DefaultUserProfile.Editor() {
+         @Override public PropertyMap edit(PropertyMap input) {
+            return input.copyBuilder().putOpaqueValue(key, value).build();
+         }});
+      return this;
+   }
+
 
    private static class ProfileKeySetView implements Set<String> {
       private final ProfilePropertyMapView map_;
