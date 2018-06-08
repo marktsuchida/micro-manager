@@ -37,6 +37,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -359,7 +360,20 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
       offsetButton.setText("Add Offset");
       offsetButton.setToolTipText("Add an offset to the selected positions.");
       add(offsetButton);
-      
+
+      JButton zInterpolateButton = posListButton(buttonSize, arialSmallFont_);
+      zInterpolateButton.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            zInterpolate();
+         }
+      });
+      zInterpolateButton.setIcon(new ImageIcon(MMStudio.class.getResource(
+              "/org/micromanager/icons/empty.png")));
+      zInterpolateButton.setText("Interpolate Z");
+      zInterpolateButton.setToolTipText("Add Z coordinates based on planar interpolation of the 3 selected positions");
+      add(zInterpolateButton);
+
       final JButton removeAllButton = posListButton(buttonSize, arialSmallFont_);
       removeAllButton.addActionListener(new ActionListener() {
          @Override
@@ -1189,6 +1203,72 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
       }
       positionModel_.fireTableDataChanged();
       acqControlDlg_.updateGUIContents();
+   }
+
+   private void zInterpolate() {
+      String xyStage = core_.getXYStageDevice();
+      if (xyStage == null || xyStage.isEmpty()) {
+         ReportingUtils.showError("No XY stage configured.", this);
+         return;
+      }
+      String focusDrive = core_.getFocusDevice();
+      if (focusDrive == null || focusDrive.isEmpty()) {
+         ReportingUtils.showError("No focus device configured.", this);
+         return;
+      }
+
+      List<Integer> selectedRows = new ArrayList<Integer>();
+      for (int row : posTable_.getSelectedRows()) {
+          selectedRows.add(row);
+      }
+      if (selectedRows.size() != 3) {
+          JOptionPane.showMessageDialog(this,
+                  "Please select exactly 3 positions to define the focal plane.");
+          return;
+      }
+
+      MultiStagePosition[] msps = new MultiStagePosition[3];
+      for (int i = 0; i < 3; ++i) {
+         int row = selectedRows.get(i);
+         MultiStagePosition msp = positionModel_.getPositionList().getPosition(row - 1);
+         if (msp.get(xyStage) == null || msp.get(focusDrive) == null) {
+            JOptionPane.showMessageDialog(this,
+                    "The selected positions do not have the required XY and Z coordinates.");
+            return;
+         }
+         msps[i] = msp;
+      }
+
+      ZInterpolator.XYToZFunction f =
+              ZInterpolator.interpolateThreePoint(msps, xyStage, focusDrive);
+      if (f == null) {
+         JOptionPane.showMessageDialog(this, "Interpolation failed.");
+         return;
+      }
+
+      int nPositions = positionModel_.getPositionList().getNumberOfPositions();
+      for (int i = 0; i < nPositions; ++i) {
+          if (selectedRows.contains(i + 1)) {
+             continue; // Do not process the selected rows
+          }
+
+          MultiStagePosition msp = positionModel_.getPositionList().getPosition(i);
+          if (msp.get(xyStage) != null) {
+             MultiStagePosition newMsp = MultiStagePosition.newInstance(msp);
+             if (newMsp.get(focusDrive) != null) {
+                 newMsp.remove(newMsp.get(focusDrive));
+             }
+             double x = msp.get(xyStage).x;
+             double y = msp.get(xyStage).y;
+             StagePosition sp = new StagePosition();
+             sp.numAxes = 1;
+             sp.stageName = focusDrive;
+             sp.x = f.call(x, y);
+             newMsp.add(sp);
+             positionModel_.getPositionList().replacePosition(i, newMsp);
+          }
+      }
+      ((PositionTableModel) posTable_.getModel()).fireTableDataChanged();
    }
 
    @Subscribe
