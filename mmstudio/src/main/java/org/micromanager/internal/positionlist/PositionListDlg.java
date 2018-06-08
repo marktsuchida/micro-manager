@@ -51,6 +51,7 @@ import javax.swing.table.TableCellRenderer;
 import mmcorej.CMMCore;
 import mmcorej.DeviceType;
 import mmcorej.StrVector;
+import net.miginfocom.layout.CC;
 import net.miginfocom.swing.MigLayout;
 import org.micromanager.MultiStagePosition;
 import org.micromanager.PositionList;
@@ -373,7 +374,21 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
               "/org/micromanager/icons/delete.png")));
       removeAllButton.setText("Clear All");
       removeAllButton.setToolTipText("Removes all positions from list");
-      add(removeAllButton);
+      add(removeAllButton, new CC().gapBottom("push"));
+
+      tileButton_ = posListButton(buttonSize, arialSmallFont_);
+      tileButton_.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent arg0) {
+            showCreateTileDlg();
+         }
+      });
+      tileButton_.setIcon(new ImageIcon(MMStudio.class.getResource(
+              "/org/micromanager/icons/empty.png")));
+      tileButton_.setText("Create Grid");
+      tileButton_.setToolTipText("Open new window to create grid of equally spaced positions");
+      add(tileButton_, new CC().gapBottom("push"));
+      setTileButtonEnabled();
 
       final JButton loadButton = posListButton(buttonSize, arialSmallFont_);
       loadButton.addActionListener(new ActionListener() {
@@ -386,7 +401,7 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
               "/org/micromanager/icons/empty.png")));
       loadButton.setText("Load...");
       loadButton.setToolTipText("Load position list");
-      add(loadButton, "gaptop 4:push");
+      add(loadButton, new CC());
 
       final JButton saveAsButton = posListButton(buttonSize, arialSmallFont_);
       saveAsButton.addActionListener(new ActionListener() {
@@ -400,20 +415,6 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
       saveAsButton.setText("Save As...");
       saveAsButton.setToolTipText("Save position list as");
       add(saveAsButton);
-
-      tileButton_ = posListButton(buttonSize, arialSmallFont_);
-      tileButton_.addActionListener(new ActionListener() {
-         @Override
-         public void actionPerformed(ActionEvent arg0) {
-            showCreateTileDlg();
-         }
-      });
-      tileButton_.setIcon(new ImageIcon(MMStudio.class.getResource(
-              "/org/micromanager/icons/empty.png")));
-      tileButton_.setText("Create Grid");
-      tileButton_.setToolTipText("Open new window to create grid of equally spaced positions");
-      add(tileButton_);
-      setTileButtonEnabled();
 
       final JButton closeButton = posListButton(buttonSize, arialSmallFont_);
       closeButton.addActionListener(new ActionListener() {
