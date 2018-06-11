@@ -95,6 +95,7 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
    private AcqControlDlg acqControlDlg_;
    private AxisList axisList_;
    private final JButton tileButton_;
+   private final JButton tileEachButton_;
 
    private MultiStagePosition curMsp_;
    public JButton markButton_;
@@ -104,10 +105,10 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
 
    @Subscribe
    public void onTileUpdate(MoversChangedEvent event) {
-      setTileButtonEnabled();
+      setTileButtonsEnabled();
    }
 
-   private void setTileButtonEnabled() {
+   private void setTileButtonsEnabled() {
       int n2DStages = 0;
       for (int i = 0; i < axisList_.getNumberOfPositions(); i++) {
          AxisData ad = axisList_.get(i);
@@ -117,11 +118,9 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
             }
          }
       }
-      if (n2DStages == 1) {
-         tileButton_.setEnabled(true);
-      } else {
-         tileButton_.setEnabled(false);
-      }
+      boolean enabled = n2DStages == 1;
+      tileButton_.setEnabled(enabled);
+      tileEachButton_.setEnabled(enabled);
    }
 
    /**
@@ -399,10 +398,24 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
       });
       tileButton_.setIcon(new ImageIcon(MMStudio.class.getResource(
               "/org/micromanager/icons/empty.png")));
-      tileButton_.setText("Create Grid");
-      tileButton_.setToolTipText("Open new window to create grid of equally spaced positions");
-      add(tileButton_, new CC().gapBottom("push"));
-      setTileButtonEnabled();
+      tileButton_.setText("Create Grid...");
+      tileButton_.setToolTipText("Create a grid of equally spaced positions");
+      add(tileButton_, new CC());
+
+      tileEachButton_ = posListButton(buttonSize, arialSmallFont_);
+      tileEachButton_.addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            showTileEachDlg();
+         }
+      });
+      tileEachButton_.setIcon(new ImageIcon(MMStudio.class.getResource(
+              "/org/micromanager/icons/empty.png")));
+      tileEachButton_.setText("Tile Each...");
+      tileEachButton_.setToolTipText("Create a grid around each selected position");
+      add(tileEachButton_, new CC().gapBottom("push"));
+
+      setTileButtonsEnabled();
 
       final JButton loadButton = posListButton(buttonSize, arialSmallFont_);
       loadButton.addActionListener(new ActionListener() {
@@ -874,6 +887,18 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
    protected void showCreateTileDlg() {
       TileCreatorDlg tileCreatorDlg = new TileCreatorDlg(core_, studio_, this);
       tileCreatorDlg.setVisible(true);
+   }
+
+   private void showTileEachDlg() {
+      PositionList positions = positionModel_.getPositionList();
+      int[] selectedRows = posTable_.getSelectedRows();
+      List<Integer> selectedPositionIndices = new ArrayList(selectedRows.length);
+      for (int rowIndex : selectedRows) {
+         selectedPositionIndices.add(rowIndex - 1);
+      }
+
+      TileEachDlg tileEachDlg = new TileEachDlg(core_, studio_, positions, selectedPositionIndices);
+      tileEachDlg.setVisible(true);
    }
 
    private PositionList getPositionList() {
