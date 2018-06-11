@@ -1253,15 +1253,52 @@ public final class PositionListDlg extends MMDialog implements MouseListener, Ch
       }
 
       MultiStagePosition[] msps = new MultiStagePosition[3];
+      boolean hasFocusCoords = true;
       for (int i = 0; i < 3; ++i) {
          int row = selectedRows.get(i);
          MultiStagePosition msp = positionModel_.getPositionList().getPosition(row - 1);
-         if (msp.get(xyStage) == null || msp.get(focusDrive) == null) {
+         if (msp.get(xyStage) == null) {
             JOptionPane.showMessageDialog(this,
-                    "The selected positions do not have the required XY and Z coordinates.");
+                    "The selected positions do not have the required XY coordinates.");
             return;
          }
+         if (msp.get(focusDrive) == null) {
+            hasFocusCoords = false;
+         }
          msps[i] = msp;
+      }
+      if (!hasFocusCoords) {
+         // We could just make this an error, but in practice it is more
+         // convenient to accept any Z device, so long as it is unique.
+         // Check that all 3 points have the same Z device and none other.
+         String altFocusDrive = null;
+         for (int i = 0; i < 3; ++i) {
+             if (i > 0 && altFocusDrive == null) { // First position had no Z
+                JOptionPane.showMessageDialog(this,
+                        "The selected positions do not have the required Z coordinates.");
+                return;
+             }
+
+             MultiStagePosition msp = msps[i];
+             for (int j = 0; j < msp.size(); ++j) {
+                 StagePosition sp = msp.get(j);
+                 if (sp.numAxes != 1) {
+                    continue;
+                 }
+
+                 if (altFocusDrive == null) {
+                     altFocusDrive = sp.stageName;
+                 }
+                 else if (!sp.stageName.equals(altFocusDrive)) {
+                     JOptionPane.showMessageDialog(this,
+                             "<html>Cannot determine the focus drive to consider.<br>" +
+                                     "Please either set Core-Focus to the desired focus device, or<br>" +
+                                     "select positions with a single Z coordinate.</html>");
+                     return;
+                 }
+             }
+         }
+         focusDrive = altFocusDrive;
       }
 
       ZInterpolator.XYToZFunction f =
