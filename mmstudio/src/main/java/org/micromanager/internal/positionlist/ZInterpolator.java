@@ -54,8 +54,10 @@ class ZInterpolator {
 
         ReportingUtils.logDebugMessage(String.format("bX = %f, bY = %f, bZ = %f",
                 bracketX, bracketY, bracketZ));
-        if (Math.abs(bracketX) + Math.abs(bracketY) < 1e-6 ||
-                Math.abs(bracketZ) < 1e-6) {
+
+        // TODO There could be more checking for pathological cases
+        // (For example, check the maximum gradient of the computed plane?)
+        if (Math.abs(bracketZ) < 1e-6) {
             return null;
         }
 
