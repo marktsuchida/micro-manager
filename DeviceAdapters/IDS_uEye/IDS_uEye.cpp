@@ -298,7 +298,26 @@ int CIDS_uEye::Initialize()
    roiYSize_=cameraCCDYSize_;
    roiXSizeReal_=cameraCCDXSize_;
    roiYSizeReal_=cameraCCDYSize_;
-  
+
+   // Enable extended pixel clock range, if supported by the camera
+   hasExtendedPixelClk_ = false;
+   INT supportedFeaturesMask;
+   nReturn = is_DeviceFeature(hCam, IS_DEVICE_FEATURE_CMD_GET_SUPPORTED_FEATURES,
+      (void*)&supportedFeaturesMask, sizeof(supportedFeaturesMask));
+   if (nReturn == IS_SUCCESS) {
+      UINT extPixelClkEnabledDef;
+      nReturn = is_DeviceFeature(hCam, IS_DEVICE_FEATURE_CMD_GET_EXTENDED_PIXELCLOCK_RANGE_ENABLE_DEFAULT,
+         (void*)&extPixelClkEnabledDef, sizeof(extPixelClkEnabledDef));
+      if (nReturn == IS_SUCCESS) {
+         UINT on = EXTENDED_PIXELCLOCK_RANGE_ON;
+         nReturn = is_DeviceFeature(hCam, IS_DEVICE_FEATURE_CMD_SET_EXTENDED_PIXELCLOCK_RANGE_ENABLE,
+            (void*)&on, sizeof(on));
+         nReturn = is_DeviceFeature(hCam, IS_DEVICE_FEATURE_CMD_GET_EXTENDED_PIXELCLOCK_RANGE_ENABLE,
+            (void*)&on, sizeof(on));
+         if (nReturn == IS_SUCCESS && on == EXTENDED_PIXELCLOCK_RANGE_ON)
+            hasExtendedPixelClk_ = true;
+      }
+   }
 
    //get pixel clock range
    GetPixelClockRange(hCam, &pixelClkMin_, &pixelClkMax_);

@@ -337,6 +337,7 @@ class CIDS_uEye : public CCameraBase<CIDS_uEye>
   double ccdT_;
   std::string triggerDevice_;
 
+  bool hasExtendedPixelClk_;
   UINT pixelClkMin_;                                            //minimal pixel clock (MHz)
   UINT pixelClkMax_;                                            //maximal pixel clock (MHz)
   UINT pixelClkCur_;                                            //current (real) pixel clock
