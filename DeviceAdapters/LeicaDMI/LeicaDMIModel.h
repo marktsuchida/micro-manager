@@ -328,6 +328,9 @@ public:
    bool IsMethodAvailable(std::string methodLabel);
    void SetMethodAvailable(int devId);
 
+   int GetTLPrioritizedMethod() { return tlPrioritizedMethod_; }
+   void SetTLPrioritizedMethod(int m) { tlPrioritizedMethod_ = m; }
+
    // Not thread safe
    int GetStandType(std::string& standType) {standType = standType_; return DEVICE_OK;};
    int SetStandType(std::string standType) {standType_ = standType; return DEVICE_OK;};
@@ -366,6 +369,8 @@ private:
    std::vector<bool> codedDevices_;
    std::vector<bool> availableMethods_;
    std::vector<std::string> methodNames_;
+
+   int tlPrioritizedMethod_;
 
    static const int maxNrDevices_ = 100;
    static const int maxNrMethods_ = 16;

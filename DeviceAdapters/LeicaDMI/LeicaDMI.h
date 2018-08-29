@@ -63,6 +63,8 @@ class LeicaScope : public HubBase<LeicaScope>
       int OnMethod(MM::PropertyBase* pProp, MM::ActionType eAct); 
       int OnAnswerTimeOut(MM::PropertyBase* pProp, MM::ActionType eAct); 
 
+      int OnTLPrioritizedMethod(MM::PropertyBase* pProp, MM::ActionType eAct);
+
    private:
       bool initialized_;
       std::vector<std::string> discoveredDevices_;

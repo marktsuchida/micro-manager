@@ -336,6 +336,16 @@ int LeicaScope::Initialize()
             AddAllowedValue("Method", g_ScopeModel.GetMethod(i).c_str());
          }
       }
+
+      pAct = new CPropertyAction(this, &LeicaScope::OnTLPrioritizedMethod);
+      CreateStringProperty("TLPrioritizedMethod", "BF", false, pAct);
+      for (int i = 0; i < 6; ++i) // TL methods
+      {
+         if (g_ScopeModel.IsMethodAvailable(i))
+         {
+            AddAllowedValue("TLPrioritizedMethod", g_ScopeModel.GetMethod(i).c_str());
+         }
+      }
    }
 
    ret = UpdateStatus();
@@ -463,6 +473,26 @@ int LeicaScope::OnAnswerTimeOut(MM::PropertyBase* pProp, MM::ActionType eAct)
       g_ScopeInterface.SetTimeOutTime(MM::MMTime(tmp * 1000.0));
    }
 
+   return DEVICE_OK;
+}
+
+int LeicaScope::OnTLPrioritizedMethod(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      int method = g_ScopeModel.GetTLPrioritizedMethod();
+      pProp->Set(g_ScopeModel.GetMethod(method).c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      std::string v;
+      pProp->Get(v);
+      int method = g_ScopeModel.GetMethodID(v);
+      if (method >= 0)
+      {
+         g_ScopeModel.SetTLPrioritizedMethod(method);
+      }
+   }
    return DEVICE_OK;
 }
 
@@ -838,6 +868,49 @@ int TLShutter::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
    return DEVICE_OK;
 }
 
+//
+//
+//
+
+bool IsMethodAvailable(int method, int ilPos, int objPos)
+{
+   return g_ScopeModel.ILTurret_.cube_[ilPos].IsMethodAvailable(method) &&
+      g_ScopeModel.ObjectiveTurret_.objective_[objPos].IsMethodAvailable(method);
+}
+
+
+bool NeedMethodSwitch(int ilPos, int objPos, int& newMethod)
+{
+   int method;
+   g_ScopeModel.method_.GetPosition(method);
+
+   std::vector<int> methods;
+   // Search order for a usable method is:
+   // Current method, fluor methods, TL prioritized method (user settable), all methods
+   methods.push_back(method);
+   for (int i = 10; i < 13; ++i)
+   {
+      methods.push_back(i);
+   }
+   methods.push_back(g_ScopeModel.GetTLPrioritizedMethod());
+   for (int i = 0; i < 16; ++i)
+   {
+      methods.push_back(i);
+   }
+
+   newMethod = method;
+   for (std::vector<int>::const_iterator it = methods.begin(), end = methods.end();
+         it != end; ++it)
+   {
+      if (IsMethodAvailable(*it, ilPos, objPos))
+      {
+         newMethod = *it;
+         return true;
+      }
+   }
+   return false;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // ReFlected Light Turret
@@ -983,24 +1056,13 @@ int ILTurret::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
       int pos = pos_ + 1;
       if ((pos > 0) && (pos <= (int) numPos_)) {
          if (g_ScopeModel.UsesMethods()) {
-            // check if the new position is allowed with this method
-            int method;
-            g_ScopeModel.method_.GetPosition(method);
-            if (!g_ScopeModel.ILTurret_.cube_[pos].IsMethodAvailable(method)) {
-               // the new cube does not support the current method.  Look for a method:
-               // Look first in the FLUO methods, than in all available methods
-               int i = 10;
-               while (!g_ScopeModel.ILTurret_.cube_[pos].IsMethodAvailable(i) && (i < 13)) {
-                  i++;
-               }
-               if (!g_ScopeModel.ILTurret_.cube_[pos].IsMethodAvailable(i)) {
-                  i = 0;
-                  while (!g_ScopeModel.ILTurret_.cube_[pos].IsMethodAvailable(i) && (i < 16)) {
-                     i++;
-                  }
-               }
-               if (g_ScopeModel.ILTurret_.cube_[pos].IsMethodAvailable(i))
-                  g_ScopeInterface.SetMethod(*this, *GetCoreCallback(), i);
+            int objPos;
+            g_ScopeModel.ObjectiveTurret_.GetPosition(objPos);
+
+            int newMethod;
+            if (NeedMethodSwitch(pos, objPos, newMethod))
+            {
+               g_ScopeInterface.SetMethod(*this, *GetCoreCallback(), newMethod);
 
                // Now, although not ideal, we need to wait for the Method
                // switch to complete before we set the turret position.
@@ -1170,24 +1232,13 @@ int ObjectiveTurret::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
       int pos = pos_ + 1;
       if ((pos > 0) && (pos <= (int) numPos_)) {
          if (g_ScopeModel.UsesMethods()) {
-            // check if the new position is allowed with this method
-            int method;
-            g_ScopeModel.method_.GetPosition(method);
-            if (!g_ScopeModel.ObjectiveTurret_.objective_[pos].IsMethodAvailable(method)) {
-               // the new cube does not support the current method.  Look for a method:
-               // Look first in the FLUO methods, than in all available methods
-               int i = 10;
-               while (!g_ScopeModel.ObjectiveTurret_.objective_[pos].IsMethodAvailable(i) && i < 13) {
-                  i++;
-               }
-               if (!g_ScopeModel.ObjectiveTurret_.objective_[pos].IsMethodAvailable(i)) {
-                  int i = 0;
-                  while (!g_ScopeModel.ObjectiveTurret_.objective_[pos].IsMethodAvailable(i) && i < 16) {
-                     i++;
-                  }
-               }
-               if (g_ScopeModel.ObjectiveTurret_.objective_[pos].IsMethodAvailable(i))
-                  g_ScopeInterface.SetMethod(*this, *GetCoreCallback(), i);
+            int ilPos;
+            g_ScopeModel.ILTurret_.GetPosition(ilPos);
+
+            int newMethod;
+            if (NeedMethodSwitch(ilPos, pos, newMethod))
+            {
+               g_ScopeInterface.SetMethod(*this, *GetCoreCallback(), newMethod);
             }
          }
          return g_ScopeInterface.SetRevolverPosition(*this, *GetCoreCallback(), pos);

@@ -399,7 +399,8 @@ LeicaDMIModel::LeicaDMIModel() :
    availableDevices_(maxNrDevices_, false),
    codedDevices_(maxNrDevices_, false),
    availableMethods_(maxNrMethods_, false),
-   methodNames_(maxNrMethods_ + 1)
+   methodNames_(maxNrMethods_ + 1),
+   tlPrioritizedMethod_(0) // BF
 {
    methodNames_[0] = "TL BF";
    methodNames_[1] = "TL PH";
