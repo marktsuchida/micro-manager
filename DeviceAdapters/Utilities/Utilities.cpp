@@ -53,6 +53,7 @@ const char* g_DeviceNameDATTLStateDevice = "DA TTL State Device";
 const char* g_DeviceNameMultiDAStateDevice = "Multi DA State Device";
 const char* g_DeviceNameAutoFocusStage = "AutoFocus Stage";
 const char* g_DeviceNameStateDeviceShutter = "State Device Shutter";
+const char* g_DeviceNamePropertyShutter = "Property Shutter";
 
 const char* g_PropertyMinUm = "Stage Low Position(um)";
 const char* g_PropertyMaxUm = "Stage High Position(um)";
@@ -88,6 +89,7 @@ MODULE_API void InitializeModuleData()
    RegisterDevice(g_DeviceNameMultiDAStateDevice, MM::StateDevice, "Several DAs as a single state device allowing digital masking");
    RegisterDevice(g_DeviceNameAutoFocusStage, MM::StageDevice, "AutoFocus offset acting as a Z-stage");
    RegisterDevice(g_DeviceNameStateDeviceShutter, MM::ShutterDevice, "State device used as a shutter");
+   RegisterDevice(g_DeviceNamePropertyShutter, MM::ShutterDevice, "Intensity property as shutter");
 }
 
 MODULE_API MM::Device* CreateDevice(const char* deviceName)                  
@@ -121,6 +123,8 @@ MODULE_API MM::Device* CreateDevice(const char* deviceName)
       return new AutoFocusStage();
    } else if (strcmp(deviceName, g_DeviceNameStateDeviceShutter) == 0) {
       return new StateDeviceShutter();
+   } else if (strcmp(deviceName, g_DeviceNamePropertyShutter) == 0) {
+      return new PropertyShutter();
    }
 
    return 0;
@@ -4906,3 +4910,295 @@ int StateDeviceShutter::OnStateDevice(MM::PropertyBase* pProp, MM::ActionType eA
 }
 
 
+//
+// PropertyShutter
+//
+
+PropertyShutter::PropertyShutter() :
+   isFloatProperty_(false),
+   open_(false),
+   intensity_(0.0)
+{
+   InitializeDefaultErrorMessages();
+   SetErrorText(ERR_INVALID_DEVICE_NAME, "The specified device cannot be found");
+   SetErrorText(ERR_INVALID_PROPERTY, "The specified property does not exist, or is not supported");
+
+   CreateStringProperty("Device", deviceLabel_.c_str(), false,
+         new CPropertyAction(this, &PropertyShutter::OnDeviceLabel), true);
+   CreateStringProperty("Property", propertyName_.c_str(), false,
+         new CPropertyAction(this, &PropertyShutter::OnPropertyName), true);
+}
+
+
+PropertyShutter::~PropertyShutter()
+{
+}
+
+
+int PropertyShutter::Initialize()
+{
+   MM::Device* device = GetDevice(deviceLabel_.c_str());
+   if (!device)
+      return ERR_INVALID_DEVICE_NAME;
+
+   // Property must exist
+   if (!device->HasProperty(propertyName_.c_str()))
+      return ERR_INVALID_PROPERTY;
+
+   int err;
+
+   // Property must not be read-only
+   bool ro;
+   if ((err = device->GetPropertyReadOnly(propertyName_.c_str(), ro)) || ro)
+      return err ? err :ERR_INVALID_PROPERTY;
+
+   // Property must not be pre-init
+   bool preInit;
+   if ((err = device->GetPropertyInitStatus(propertyName_.c_str(), preInit)) || preInit)
+      return err ? err : ERR_INVALID_PROPERTY;
+
+   // Property must be integer or float
+   MM::PropertyType propType;
+   if ((err = device->GetPropertyType(propertyName_.c_str(), propType)) != DEVICE_OK)
+      return err;
+   switch (propType)
+   {
+      case MM::Integer:
+         isFloatProperty_ = false;
+         break;
+      case MM::Float:
+         isFloatProperty_ = true;
+         break;
+      default:
+         return ERR_INVALID_PROPERTY;
+   }
+
+   // Property must not have discrete values
+   // Note: in theory, we could support properties with discrete values. But
+   // PropertyShutter is intended for wrapping continuously variable properties
+   // (typically intensity/power), and we do not want to encourage misuse where
+   // StateDeviceShutter would be more appropriate. So for now we only allow
+   // ranged properties.
+   if (device->GetNumberOfPropertyValues(propertyName_.c_str()) > 0)
+      return ERR_INVALID_PROPERTY;
+
+   if ((err = GetPropertyValue(intensity_)) != DEVICE_OK)
+      return err;
+   open_ = (intensity_ != 0.0);
+
+   // Create the "Intensity" property, which re-exposes the wrapped property.
+   // (Needed to control intensity while "closed".)
+   if (isFloatProperty_)
+   {
+      err = CreateFloatProperty("Intensity", intensity_, false,
+            new CPropertyAction(this, &PropertyShutter::OnIntensity));
+   }
+   else
+   {
+      err = CreateIntegerProperty("Intensity", static_cast<long>(intensity_), false,
+            new CPropertyAction(this, &PropertyShutter::OnIntensity));
+   }
+   if (err)
+      return err;
+
+   // If the wrapped property has limits, so does "Intensity"
+   bool hasLimits;
+   if ((err = device->HasPropertyLimits(propertyName_.c_str(), hasLimits)) != DEVICE_OK)
+      return err;
+   if (hasLimits)
+   {
+      double low, high;
+      if ((err = device->GetPropertyLowerLimit(propertyName_.c_str(), low)) != DEVICE_OK)
+         return err;
+      if ((err = device->GetPropertyUpperLimit(propertyName_.c_str(), high)) != DEVICE_OK)
+         return err;
+
+      if ((err = SetPropertyLimits("Intensity", low, high)) != DEVICE_OK)
+         return err;
+   }
+
+   // State property implemented by CShutterBase
+   if ((err = CreateIntegerProperty(MM::g_Keyword_State, open_ ? 1 : 0, false,
+               new CPropertyAction(this, &PropertyShutter::OnState))) != DEVICE_OK)
+      return err;
+   AddAllowedValue(MM::g_Keyword_State, "0");
+   AddAllowedValue(MM::g_Keyword_State, "1");
+
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::Shutdown()
+{
+   return DEVICE_OK;
+}
+
+
+void PropertyShutter::GetName(char *name) const
+{
+   CDeviceUtils::CopyLimitedString(name, g_DeviceNamePropertyShutter);
+}
+
+
+bool PropertyShutter::Busy()
+{
+   MM::Device* device = GetDevice(deviceLabel_.c_str());
+   if (!device)
+      return false;
+
+   return device->Busy();
+}
+
+
+int PropertyShutter::SetOpen(bool open)
+{
+   if (open == open_)
+      return DEVICE_OK;
+
+   int err = SetPropertyValue(open ? intensity_ : 0.0);
+   if (err)
+      return err;
+
+   open_ = open;
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::GetOpen(bool& open)
+{
+   open = open_;
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::OnDeviceLabel(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(deviceLabel_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      pProp->Get(deviceLabel_);
+   }
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::OnPropertyName(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(propertyName_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      pProp->Get(propertyName_);
+   }
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::OnState(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(open_ ? 1L : 0L);
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      long v;
+      pProp->Get(v);
+      return SetOpen(!!v);
+   }
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      if (open_)
+      {
+         int err = GetPropertyValue(intensity_);
+         if (err)
+            return err;
+      }
+
+      double value = intensity_;
+
+      if (isFloatProperty_)
+         pProp->Set(value);
+      else
+         pProp->Set(static_cast<long>(value));
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      double value;
+      if (isFloatProperty_)
+      {
+         pProp->Get(value);
+      }
+      else
+      {
+         long v;
+         pProp->Get(v);
+         value = v;
+      }
+
+      if (open_)
+      {
+         int err = SetPropertyValue(value);
+         if (err)
+            return err;
+      }
+
+      intensity_ = value;
+   }
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::GetPropertyValue(double &value)
+{
+   MM::Device* device = GetDevice(deviceLabel_.c_str());
+   if (!device)
+      return ERR_INVALID_DEVICE_NAME;
+
+   MM::Core* core = GetCoreCallback();
+   if (!core)
+      return DEVICE_ERR;
+
+   char s[MM::MaxStrLength];
+   int err = core->GetDeviceProperty(deviceLabel_.c_str(), propertyName_.c_str(), s);
+   if (err)
+      return err;
+
+   try
+   {
+      value = boost::lexical_cast<double>(s);
+   }
+   catch (boost::bad_lexical_cast&)
+   {
+      return DEVICE_ERR;
+   }
+   return DEVICE_OK;
+}
+
+
+int PropertyShutter::SetPropertyValue(double value)
+{
+   MM::Device* device = GetDevice(deviceLabel_.c_str());
+   if (!device)
+      return ERR_INVALID_DEVICE_NAME;
+
+   MM::Core* core = GetCoreCallback();
+   if (!core)
+      return DEVICE_ERR;
+
+   std::string s = boost::lexical_cast<std::string>(isFloatProperty_ ?
+         value : static_cast<long>(value));
+
+   return core->SetDeviceProperty(deviceLabel_.c_str(), propertyName_.c_str(), s.c_str());
+}

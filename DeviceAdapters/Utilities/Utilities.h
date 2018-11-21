@@ -48,6 +48,7 @@
 #define ERR_AUTOFOCUS_NOT_SUPPORTED        10012
 #define ERR_NO_PHYSICAL_STAGE              10013
 #define ERR_TIMEOUT                        10021
+#define ERR_INVALID_PROPERTY               10022
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -750,6 +751,44 @@ private:
    MM::State* stateDevice_;
    bool initialized_;
    MM::MMTime lastMoveStartTime_;
+};
+
+// Similar to DA shutter, but uses an arbitrary property of an arbitrary device
+class PropertyShutter : public CShutterBase<PropertyShutter>
+{
+public:
+   PropertyShutter();
+   virtual ~PropertyShutter();
+
+   virtual int Initialize();
+   virtual int Shutdown();
+   virtual void GetName(char *name) const;
+   virtual bool Busy();
+
+   virtual int SetOpen(bool open);
+   virtual int GetOpen(bool& open);
+   virtual int Fire(double) { return DEVICE_UNSUPPORTED_COMMAND; }
+
+private: // pre-init property handlers
+   int OnDeviceLabel(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnPropertyName(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+private: // property handlers
+   int OnState(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnIntensity(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+private:
+   int GetPropertyValue(double& value);
+   int SetPropertyValue(double value);
+
+private:
+   std::string deviceLabel_;
+   std::string propertyName_;
+
+   bool isFloatProperty_; // Otherwise, int property
+
+   bool open_;
+   double intensity_;
 };
 
 #endif //_UTILITIES_H_
