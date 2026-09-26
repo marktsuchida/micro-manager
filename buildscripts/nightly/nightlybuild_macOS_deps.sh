@@ -115,7 +115,7 @@ using clang : ${MM_ARCH} : clang++ ${MM_ARCH_FLAGS} ;
 project : default-build <toolset>clang-${MM_ARCH} ;
 option.set keep-going : false ;
 EOF
-./b2 --prefix=${MM_DEPS_PREFIX} link=static threading=multi architecture=x86 address-model=64 \
+./b2 --prefix=${MM_DEPS_PREFIX} link=static threading=multi architecture=arm address-model=64 \
   cflags="${MM_CFLAGS}" cxxflags="${MM_CXXFLAGS}" \
   --with-atomic --with-chrono --with-date_time --with-filesystem --with-system --with-thread \
   $MM_PARALLELMAKEFLAG install
@@ -238,7 +238,7 @@ include Makefile.srcs
 
 CC = cc-from-cmdline
 CXX = cxx-from-cmdline
-CFLAGS = -Os -fexceptions -fvisibility=hidden -DPIC -fno-common
+CFLAGS = -Os -fexceptions -fvisibility=hidden -DPIC -fno-common -DPNG_ARM_NEON_OPT=0
 CXXFLAGS = $(CFLAGS) -Wno-ctor-dtor-privacy
 CPPFLAGS = -DNO_LCMS $(MM_CPPFLAGS) $(INCLUDE)
 LIBTOOL = /usr/bin/libtool
@@ -448,7 +448,7 @@ patch -p2 <<'END_OF_PATCH'
         capture.c \
 END_OF_PATCH
 
-eval ./configure $MM_DEPS_CONFIGUREFLAGS --disable-shared --enable-static --with-pic --disable-sdltest --disable-examples "LIBS=\"-framework IOKit\""
+eval ./configure $MM_DEPS_CONFIGUREFLAGS --disable-shared --enable-static --with-pic --disable-sdltest --disable-examples "LIBS=\"-framework IOKit\"" PKG_CONFIG_PATH=$MM_DEPS_PREFIX/lib/pkgconfig
 make $MM_PARALLELMAKEFLAG
 make install
 popd
@@ -459,6 +459,9 @@ popd
 #
 
 ############### TODO check deployment target and sdkroot; set cflags and cxxflags (esp. -v)
+
+# Disabled: does not build for arm64
+if false; then
 
 unzip -oq ../downloads/opencv-2.4.13.6.zip
 pushd opencv-2.4.13.6
@@ -531,8 +534,8 @@ PKG_CONFIG_PATH=$MM_DEPS_PREFIX/lib/pkgconfig cmake \
 -DCMAKE_CXX_COMPILER:STRING=/usr/bin/clang++ \
 -DCMAKE_CXX_FLAGS:STRING="-v" \
 -DCMAKE_INSTALL_PREFIX="$MM_DEPS_PREFIX" \
--DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" \
--DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=10.9 \
+-DCMAKE_OSX_ARCHITECTURES:STRING="$MM_ARCH" \
+-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=$MM_MACOSX_VERSION_MIN \
 -DCMAKE_OSX_SYSROOT:STRING=$SDKROOT \
 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
 -DENABLE_PRECOMPILED_HEADERS:BOOL=ON \
@@ -555,6 +558,8 @@ make $MM_PARALLELMAKEFLAG
 make install
 popd
 
+fi # OpenCV disabled
+
 #
 # msgpack-c
 #
@@ -567,8 +572,8 @@ cmake \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_INSTALL_PREFIX=$MM_DEPS_PREFIX \
 -DCMAKE_VERBOSE_MAKEFILE=ON \
--DCMAKE_OSX_ARCHITECTURES=x86_64 \
--DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
+-DCMAKE_OSX_ARCHITECTURES=$MM_ARCH \
+-DCMAKE_OSX_DEPLOYMENT_TARGET=$MM_MACOSX_VERSION_MIN \
 -DCMAKE_OSX_SYSROOT=$SDKROOT \
 -DMSGPACK_USE_BOOST=OFF \
 ..
